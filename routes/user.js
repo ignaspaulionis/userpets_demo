@@ -12,8 +12,8 @@ const secretKey = 'your_secret_key';
 // Register
 router.post('/register', async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const newUser = await User.create({ email, password });
+    const { email, password, fullname } = req.body;
+    const newUser = await User.create({ email, password, fullname });
     res.status(201).json({ message: 'User registered successfully!' });
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -42,7 +42,7 @@ router.post('/login', async (req, res) => {
 // Update User (PUT)
 router.put('/:id', authMiddleware, async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, fullname } = req.body;
     if (req.user.id !== parseInt(req.params.id) && !req.user.issuperadmin) {
       return res.status(403).json({ error: 'Access denied' });
     }
@@ -51,9 +51,8 @@ router.put('/:id', authMiddleware, async (req, res) => {
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     user.email = email || user.email;
-    if (password) {
-      user.password = await bcrypt.hash(password, 10);
-    }
+    user.fullname = fullname;
+
     await user.save();
     res.json({ message: 'User updated successfully', user });
   } catch (err) {
@@ -64,14 +63,18 @@ router.put('/:id', authMiddleware, async (req, res) => {
 // Partially Update User (PATCH)
 router.patch('/:id', authMiddleware, async (req, res) => {
   try {
-    const { issuperadmin } = req.body;
+    const { issuperadmin, email, fullname } = req.body;
 
     const user = await User.findByPk(req.params.id);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
+    user.email = email || user.email;
+    user.fullname = fullname;
+
     if (typeof issuperadmin !== 'undefined') {
       user.issuperadmin = issuperadmin;
     }
+    
     await user.save();
     res.json({ message: 'User updated successfully', user });
   } catch (err) {
@@ -83,7 +86,7 @@ router.patch('/:id', authMiddleware, async (req, res) => {
 router.get('/', authMiddleware, async (req, res) => {
     try {
 
-      const users = await User.findAll({ attributes: ['id', 'email', 'issuperadmin'] });
+      const users = await User.findAll({ attributes: ['id', 'fullname', 'email', 'issuperadmin'] });
       return res.json(users);
 
     } catch (err) {
