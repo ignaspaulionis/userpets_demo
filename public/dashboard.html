@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Info</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .container {
+      margin-top: 50px;
+      text-align: center;
+    }
+    .info {
+      font-size: 20px;
+      margin-top: 20px;
+    }
+    .refresh-time {
+      margin-top: 20px;
+      color: gray;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>User Information</h1>
+    <div id="user-info" class="info">Loading...</div>
+    <div class="refresh-time">
+      <small>Refreshing every 5 seconds...</small>
+    </div>
+  </div>
+
+  <script>
+    // Function to fetch the user information
+    async function fetchUserInfo() {
+      try {
+        const response = await fetch('/users/user-stats', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}` // Assuming JWT is stored in localStorage
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch user info');
+        }
+
+      const users = await response.json(); // This is an array of users
+      const userInfoDiv = document.getElementById('user-info');
+
+        // Clear the div before adding new content
+        userInfoDiv.innerHTML = '';
+
+        // Check if users exist and loop through them
+        if (users && users.length > 0) {
+          users.forEach(user => {
+            const userElement = document.createElement('div');
+            userElement.innerHTML = `
+              <strong>Email:</strong> ${user.email} <br>
+              <strong>Superadmin:</strong> ${user.issuperadmin} <br><br>
+            `;
+            userInfoDiv.appendChild(userElement);
+          });
+        } else {
+          userInfoDiv.innerHTML = 'User not found.';
+        }
+
+      } catch (error) {
+        document.getElementById('user-info').innerText = 'Error fetching user info';
+        console.error('Error fetching user info:', error);
+      }
+    }
+
+    // Refresh the page content every 5 seconds
+    setInterval(fetchUserInfo, 5000);
+
+    // Fetch the user info when the page loads
+    fetchUserInfo();
+  </script>
+</body>
+</html>
