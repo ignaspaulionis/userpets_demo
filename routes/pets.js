@@ -28,7 +28,7 @@ router.get('/', async (req, res) => {
       offset,
     });
 
-    const totalPages = count === 0 ? 0 : Math.ceil(count / limitNumber);
+    const totalPages = count === 0 ? 1 : Math.ceil(count / limitNumber);
 
     res.json({
       pets: rows,
