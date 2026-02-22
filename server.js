@@ -27,6 +27,13 @@ Tag.belongsToMany(Pet, {
 });
 
 const app = express();
+const rateLimit = require('express-rate-limit');
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: 'Too many requests, please try again later.'
+});
 app.use(express.json());
 
 
@@ -44,6 +51,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // Routes
 app.use('/pets', petsRouter);
 app.use('/users', userRouter);
+app.use(require('./middleware/errorHandler'));
 app.use('/tags', tagsRouter);
 
 // Initialize database and sync models
