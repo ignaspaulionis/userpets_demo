@@ -95,6 +95,7 @@ router.get('/', authMiddleware, async (req, res) => {
       return res.json(users);
 
     } catch (err) {
+      if (handleDbError(res, err)) return;
       res.status(400).json({ error: err.message });
     }
   });
@@ -106,6 +107,7 @@ router.get('/user-stats', async (req, res) => {
       return res.json(users);
 
     } catch (err) {
+      if (handleDbError(res, err)) return;
       res.status(400).json({ error: err.message });
     }
   });
