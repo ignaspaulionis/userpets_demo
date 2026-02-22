@@ -4,8 +4,12 @@ const bcrypt = require('bcryptjs');
 const User = require('../models/user');
 const { authMiddleware, isSuperadminMiddleware } = require('../middleware/auth');
 
+const Joi = require('joi');
+require('express-async-errors');
+const userValidation = require('../validation/userValidation');
+
 const router = express.Router();
-const secretKey = 'your_secret_key';
+const secretKey = process.env.JWT_SECRET || secretKey;
 
 
 
@@ -21,6 +25,8 @@ router.post('/register', async (req, res) => {
 });
 
 // Login
+router.use('/login', limiter);
+
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -83,7 +89,7 @@ router.patch('/:id', authMiddleware, async (req, res) => {
 });
 
 // Get All Users (Superadmin Only)
-router.get('/', authMiddleware, async (req, res) => {
+router.get('/', [authMiddleware, isSuperadminMiddleware], async (req, res) => {
     try {
 
       const users = await User.findAll({ attributes: ['id', 'fullname', 'email', 'issuperadmin'] });
