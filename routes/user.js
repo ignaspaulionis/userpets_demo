@@ -5,6 +5,7 @@ const User = require('../models/user');
 const { authMiddleware, isSuperadminMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
+const { handleDbError } = require('../utils/dbErrorHandler');
 const secretKey = 'your_secret_key';
 
 
@@ -16,6 +17,7 @@ router.post('/register', async (req, res) => {
     const newUser = await User.create({ email, password, fullname });
     res.status(201).json({ message: 'User registered successfully!' });
   } catch (err) {
+    if (handleDbError(res, err)) return;
     res.status(400).json({ error: err.message });
   }
 });
@@ -34,6 +36,7 @@ router.post('/login', async (req, res) => {
     const token = jwt.encode(payload, secretKey);
     res.json({ token });
   } catch (err) {
+    if (handleDbError(res, err)) return;
     res.status(400).json({ error: err.message });
   }
 });
@@ -56,6 +59,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
     await user.save();
     res.json({ message: 'User updated successfully', user });
   } catch (err) {
+    if (handleDbError(res, err)) return;
     res.status(400).json({ error: err.message });
   }
 });
@@ -78,6 +82,7 @@ router.patch('/:id', authMiddleware, async (req, res) => {
     await user.save();
     res.json({ message: 'User updated successfully', user });
   } catch (err) {
+    if (handleDbError(res, err)) return;
     res.status(400).json({ error: err.message });
   }
 });

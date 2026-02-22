@@ -3,6 +3,7 @@ const { Pet } = require('../models/pet');  // Import the Pet model
 const { Tag } = require('../models/tag');
 
 const router = express.Router();
+const { handleDbError } = require('../utils/dbErrorHandler');
 
 const isValidId = (value) => Number.isInteger(Number(value)) && Number(value) > 0;
 const isNonEmptyString = (value) => typeof value === 'string' && value.trim().length > 0;
@@ -13,6 +14,7 @@ router.get('/', async (req, res) => {
     const pets = await Pet.findAll({ include: Tag });
     res.json(pets);
   } catch (err) {
+    if (handleDbError(res, err)) return;
     res.status(400).json({ error: err.message });
   }
 });
@@ -41,6 +43,7 @@ router.post('/', async (req, res) => {
     const newPet = await Pet.create({ name, type: type.toLowerCase(), age });
     res.status(201).json(newPet);
   } catch (err) {
+    if (handleDbError(res, err)) return;
     res.status(400).json({ error: err.message });
   }
 });
@@ -59,6 +62,7 @@ router.put('/:id', async (req, res) => {
     await pet.save();
     res.json(pet);
   } catch (err) {
+    if (handleDbError(res, err)) return;
     res.status(400).json({ error: err.message });
   }
 });
@@ -77,6 +81,7 @@ router.patch('/:id', async (req, res) => {
     await pet.save();
     res.json(pet);
   } catch (err) {
+    if (handleDbError(res, err)) return;
     res.status(400).json({ error: err.message });
   }
 });
@@ -104,6 +109,7 @@ router.post('/:petId/tags/:tagId', async (req, res) => {
     const updatedPet = await Pet.findByPk(petId, { include: Tag });
     res.json(updatedPet);
   } catch (err) {
+    if (handleDbError(res, err)) return;
     res.status(400).json({ error: err.message });
   }
 });
@@ -130,6 +136,7 @@ router.delete('/:petId/tags/:tagId', async (req, res) => {
     await pet.removeTag(tag);
     res.status(204).end();
   } catch (err) {
+    if (handleDbError(res, err)) return;
     res.status(400).json({ error: err.message });
   }
 });
@@ -152,6 +159,7 @@ router.delete('/:id', async (req, res) => {
     await pet.destroy();
     res.status(204).end();
   } catch (err) {
+    if (handleDbError(res, err)) return;
     res.status(400).json({ error: err.message });
   }
 });

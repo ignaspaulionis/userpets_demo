@@ -2,6 +2,7 @@ const express = require('express');
 const { Tag } = require('../models/tag');
 
 const router = express.Router();
+const { handleDbError } = require('../utils/dbErrorHandler');
 
 const isValidId = (value) => Number.isInteger(Number(value)) && Number(value) > 0;
 const isNonEmptyString = (value) => typeof value === 'string' && value.trim().length > 0;
@@ -11,6 +12,7 @@ router.get('/', async (req, res) => {
     const tags = await Tag.findAll();
     res.json(tags);
   } catch (err) {
+    if (handleDbError(res, err)) return;
     res.status(400).json({ error: err.message });
   }
 });
@@ -26,6 +28,7 @@ router.post('/', async (req, res) => {
     const tag = await Tag.create({ name: name.trim() });
     res.status(201).json(tag);
   } catch (err) {
+    if (handleDbError(res, err)) return;
     res.status(400).json({ error: err.message });
   }
 });
@@ -52,6 +55,7 @@ router.put('/:id', async (req, res) => {
     await tag.save();
     res.json(tag);
   } catch (err) {
+    if (handleDbError(res, err)) return;
     res.status(400).json({ error: err.message });
   }
 });
@@ -81,6 +85,7 @@ router.patch('/:id', async (req, res) => {
     await tag.save();
     res.json(tag);
   } catch (err) {
+    if (handleDbError(res, err)) return;
     res.status(400).json({ error: err.message });
   }
 });
@@ -101,6 +106,7 @@ router.delete('/:id', async (req, res) => {
     await tag.destroy();
     res.status(204).end();
   } catch (err) {
+    if (handleDbError(res, err)) return;
     res.status(400).json({ error: err.message });
   }
 });
