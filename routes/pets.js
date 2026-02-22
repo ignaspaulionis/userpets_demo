@@ -1,4 +1,5 @@
 const express = require('express');
+const { Op, fn, col, where: sequelizeWhere } = require('sequelize');
 const { Pet } = require('../models/pet');  // Import the Pet model
 const { Tag } = require('../models/tag');
 
@@ -14,7 +15,7 @@ router.get('/', async (req, res) => {
     const where = {};
 
     if (isNonEmptyString(type)) {
-      where.type = type.trim().toLowerCase();
+      where[Op.and] = [sequelizeWhere(fn('lower', col('Pet.type')), type.trim().toLowerCase())];
     }
 
     const queryOptions = { where, include: Tag };
