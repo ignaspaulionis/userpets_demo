@@ -40,6 +40,32 @@
         }
       },
       "/pets/{id}": {
+        "get": {
+          "summary": "Get a pet by ID",
+          "parameters": [
+            {
+              "in": "path",
+              "name": "id",
+              "required": true,
+              "type": "integer",
+              "description": "Pet ID"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Pet found",
+              "schema": {
+                "$ref": "#/definitions/Pet"
+              }
+            },
+            "400": {
+              "description": "Invalid pet id"
+            },
+            "404": {
+              "description": "Pet not found"
+            }
+          }
+        },
         "put": {
           "summary": "Update a pet",
           "parameters": [
