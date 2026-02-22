@@ -1,10 +1,10 @@
-const path = require('path');
 const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
 const rateLimit = require('./middleware/rateLimit');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
+const { sequelize } = require('./config/db');
 const useForceSync = process.env.NODE_ENV === 'development';
 console.log('Requiring pets route...');
 
@@ -61,7 +61,7 @@ app.use(require('./middleware/errorHandler'));
 app.use('/tags', tagsRouter);
 
 // Initialize database and sync models
-sequelize.sync({ force: true })  // Cleans the DB on every load
+sequelize.sync({ force: useForceSync });
   .then(() => console.log('Database synced'));
 
 const port = process.env.PORT || 3000;
