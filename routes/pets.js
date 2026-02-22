@@ -10,14 +10,25 @@ const isNonEmptyString = (value) => typeof value === 'string' && value.trim().le
 // List Pets
 router.get('/', async (req, res) => {
   try {
-    const { type } = req.query;
+    const { type, page, limit } = req.query;
     const where = {};
 
     if (isNonEmptyString(type)) {
       where.type = type.trim().toLowerCase();
     }
 
-    const pets = await Pet.findAll({ where, include: Tag });
+    const queryOptions = { where, include: Tag };
+
+    const parsedPage = Number(page);
+    const parsedLimit = Number(limit);
+    const hasPagination = Number.isInteger(parsedPage) && parsedPage > 0 && Number.isInteger(parsedLimit) && parsedLimit > 0;
+
+    if (hasPagination) {
+      queryOptions.limit = parsedLimit;
+      queryOptions.offset = (parsedPage - 1) * parsedLimit;
+    }
+
+    const pets = await Pet.findAll(queryOptions);
     res.json(pets);
   } catch (err) {
     res.status(400).json({ error: err.message });
