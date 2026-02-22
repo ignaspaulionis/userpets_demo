@@ -1,33 +1,45 @@
 const express = require('express');
 const jwt = require('jwt-simple');
-const bcrypt = require('bcryptjs');
+
 const User = require('../models/user');
 const { authMiddleware, isSuperadminMiddleware } = require('../middleware/auth');
-
-const Joi = require('joi');
-require('express-async-errors');
-const userValidation = require('../validation/userValidation');
+const { authLimiter } = require('../middleware/rateLimit');
+const { registerSchema, loginSchema, userSchema } = require('../validation/userValidation');
 
 const router = express.Router();
-const secretKey = process.env.JWT_SECRET || secretKey;
 
+const secretKey = process.env.JWT_SECRET;
+if (!secretKey) {
+  throw new Error('JWT_SECRET is required');
+}
 
+const sanitizeUser = (user) => ({
+  id: user.id,
+  email: user.email,
+  fullname: user.fullname,
+  issuperadmin: user.issuperadmin,
+});
 
-// Register
-router.post('/register', registerValidator, async (req, res) => {
+const validateBody = (schema) => (req, res, next) => {
+  const { error, value } = schema.validate(req.body, { abortEarly: false, stripUnknown: true });
+  if (error) {
+    return res.status(400).json({ error: 'Validation error', details: error.details.map((d) => d.message) });
+  }
+  req.body = value;
+  next();
+};
+
+router.post('/register', validateBody(registerSchema), async (req, res, next) => {
   try {
     const { email, password, fullname } = req.body;
-    const newUser = await User.create({ email, password, fullname });
+    await User.create({ email, password, fullname });
     res.status(201).json({ message: 'User registered successfully!' });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    next(err);
   }
 });
 
-// Login
-router.use('/login', limiter);
-
-router.post('/login', async (req, res) => {
+router.post('/login', authLimiter, validateBody(loginSchema), async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ where: { email } });
@@ -40,76 +52,75 @@ router.post('/login', async (req, res) => {
     const token = jwt.encode(payload, secretKey);
     res.json({ token });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    next(err);
   }
 });
 
-
-// Update User (PUT)
-router.put('/:id', authMiddleware, updateValidator, async (req, res) => {
+router.put('/:id', authMiddleware, validateBody(registerSchema), async (req, res, next) => {
   try {
-    const { email, fullname } = req.body;
-    if (req.user.id !== parseInt(req.params.id) && !req.user.issuperadmin) {
+    const targetUserId = parseInt(req.params.id, 10);
+    if (req.user.id !== targetUserId && !req.user.issuperadmin) {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    const user = await User.findByPk(req.params.id);
+    const user = await User.findByPk(targetUserId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    user.email = email || user.email;
-    user.fullname = fullname;
+    user.email = req.body.email;
+    user.fullname = req.body.fullname;
+    user.password = req.body.password;
 
     await user.save();
-    res.json({ message: 'User updated successfully', user });
+    res.json({ message: 'User updated successfully', user: sanitizeUser(user) });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    next(err);
   }
 });
 
-// Partially Update User (PATCH)
-router.patch('/:id', authMiddleware, async (req, res) => {
+router.patch('/:id', authMiddleware, validateBody(userSchema), async (req, res, next) => {
   try {
-    const { issuperadmin, email, fullname } = req.body;
+    const targetUserId = parseInt(req.params.id, 10);
+    if (req.user.id !== targetUserId && !req.user.issuperadmin) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
 
-    const user = await User.findByPk(req.params.id);
+    const user = await User.findByPk(targetUserId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    user.email = email || user.email;
-    user.fullname = fullname;
+    if (req.body.email !== undefined) user.email = req.body.email;
+    if (req.body.fullname !== undefined) user.fullname = req.body.fullname;
+    if (req.body.password !== undefined) user.password = req.body.password;
 
-    if (typeof issuperadmin !== 'undefined') {
-      user.issuperadmin = issuperadmin;
+    if (req.body.issuperadmin !== undefined) {
+      if (!req.user.issuperadmin) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+      user.issuperadmin = req.body.issuperadmin;
     }
-    
+
     await user.save();
-    res.json({ message: 'User updated successfully', user });
+    res.json({ message: 'User updated successfully', user: sanitizeUser(user) });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    next(err);
   }
 });
 
-// Get All Users (Superadmin Only)
-router.get('/', [authMiddleware, isSuperadminMiddleware], async (req, res) => {
-    try {
+router.get('/', authMiddleware, isSuperadminMiddleware, async (req, res, next) => {
+  try {
+    const users = await User.findAll({ attributes: ['id', 'fullname', 'email', 'issuperadmin'] });
+    res.json(users);
+  } catch (err) {
+    next(err);
+  }
+});
 
-      const users = await User.findAll({ attributes: ['id', 'fullname', 'email', 'issuperadmin'] });
-      return res.json(users);
-
-    } catch (err) {
-      res.status(400).json({ error: err.message });
-    }
-  });
-
-router.get('/user-stats', async (req, res) => {
-    try {
-
-      const users = await User.findAll({ attributes: ['id', 'email', 'issuperadmin'] });
-      return res.json(users);
-
-    } catch (err) {
-      res.status(400).json({ error: err.message });
-    }
-  });
-
+router.get('/user-stats', authMiddleware, isSuperadminMiddleware, async (req, res, next) => {
+  try {
+    const users = await User.findAll({ attributes: ['id', 'email', 'issuperadmin'] });
+    res.json(users);
+  } catch (err) {
+    next(err);
+  }
+});
 
 module.exports = router;

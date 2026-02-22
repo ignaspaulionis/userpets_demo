@@ -2,12 +2,6 @@ const { DataTypes } = require('sequelize');
 const bcrypt = require('bcryptjs');
 const sequelize = require('../config/db');
 
-const isStrongPassword = (value) => {
-  if (!/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/.test(value)) {
-    throw new Error('Password must be at least 8 characters long and include a letter, number, and special character');
-  }
-};
-
 const User = sequelize.define('User', {
   email: {
     type: DataTypes.STRING,
@@ -35,7 +29,13 @@ User.beforeCreate(async (user) => {
   user.password = await bcrypt.hash(user.password, 10);
 });
 
-User.prototype.validatePassword = async function (password) {
+User.beforeUpdate(async (user) => {
+  if (user.changed('password')) {
+    user.password = await bcrypt.hash(user.password, 10);
+  }
+});
+
+User.prototype.validatePassword = async function validatePassword(password) {
   return bcrypt.compare(password, this.password);
 };
 

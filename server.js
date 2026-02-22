@@ -1,20 +1,22 @@
 const express = require('express');
+const path = require('path');
 const helmet = require('helmet');
 const cors = require('cors');
-const rateLimit = require('./middleware/rateLimit');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
-const { sequelize } = require('./config/db');
-const useForceSync = process.env.NODE_ENV === 'development';
-console.log('Requiring pets route...');
+
+const sequelize = require('./config/db');
+const apiRateLimit = require('./middleware/rateLimit');
+const errorHandler = require('./middleware/errorHandler');
 
 const petsRouter = require('./routes/pets');
 const userRouter = require('./routes/user');
 const tagsRouter = require('./routes/tags');
 
-const User = require('./models/user');
 const { Pet } = require('./models/pet');
 const { Tag } = require('./models/tag');
+
+const useForceSync = process.env.FORCE_DB_SYNC === 'true' && process.env.NODE_ENV !== 'production';
 
 Pet.belongsToMany(Tag, {
   through: 'PetTags',
@@ -22,6 +24,7 @@ Pet.belongsToMany(Tag, {
   otherKey: 'tagId',
   onDelete: 'CASCADE',
 });
+
 Tag.belongsToMany(Pet, {
   through: 'PetTags',
   foreignKey: 'tagId',
@@ -30,39 +33,35 @@ Tag.belongsToMany(Pet, {
 });
 
 const app = express();
-const rateLimit = require('express-rate-limit');
 
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests, please try again later.'
-});
-app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:3000' }));
+const corsOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim())
+  : ['http://localhost:3000'];
+
 app.use(helmet());
-app.use(rateLimit);
+app.use(cors({ origin: corsOrigins }));
+app.use(apiRateLimit);
 app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
-
-// Serve the index.html page at the root URL
-app.use(express.static(path.join(__dirname, 'public'))); // Adjust the folder name if necessary
-
-
-// Swagger setup
 const swaggerSpec = swaggerJsdoc({
   definition: require('./swagger/swagger.json'),
-  apis: ['./routes/pets.js'],
+  apis: ['./routes/*.js'],
 });
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-// Routes
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/pets', petsRouter);
 app.use('/users', userRouter);
-app.use(require('./middleware/errorHandler'));
 app.use('/tags', tagsRouter);
+app.use(errorHandler);
 
-// Initialize database and sync models
-sequelize.sync({ force: useForceSync });
-  .then(() => console.log('Database synced'));
+sequelize.sync({ force: useForceSync })
+  .then(() => console.log(`Database synced${useForceSync ? ' with force=true' : ''}`))
+  .catch((error) => {
+    console.error('Database sync failed');
+    console.error(error);
+    process.exit(1);
+  });
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
