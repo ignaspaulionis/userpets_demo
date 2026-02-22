@@ -26,6 +26,9 @@ Tag.belongsToMany(Pet, {
   onDelete: 'CASCADE',
 });
 
+User.hasMany(Pet, { foreignKey: 'userId' });
+Pet.belongsTo(User, { foreignKey: 'userId', onDelete: 'SET NULL' });
+
 const app = express();
 app.use(express.json());
 

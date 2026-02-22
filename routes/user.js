@@ -2,6 +2,7 @@ const express = require('express');
 const jwt = require('jwt-simple');
 const bcrypt = require('bcryptjs');
 const User = require('../models/user');
+const { Pet } = require('../models/pet');
 const { authMiddleware, isSuperadminMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
@@ -104,6 +105,22 @@ router.get('/user-stats', async (req, res) => {
       res.status(400).json({ error: err.message });
     }
   });
+
+router.get('/:id/pets', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findByPk(id);
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const pets = await Pet.findAll({ where: { userId: id } });
+    return res.json(pets);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
 
 
 module.exports = router;
