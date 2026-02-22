@@ -18,7 +18,7 @@ router.get('/', async (req, res) => {
       where[Op.and] = [sequelizeWhere(fn('lower', col('Pet.type')), type.trim().toLowerCase())];
     }
 
-    const queryOptions = { where, include: Tag };
+    const queryOptions = { where };
 
     const parsedPage = Number(page);
     const parsedLimit = Number(limit);
