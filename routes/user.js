@@ -14,7 +14,7 @@ const secretKey = process.env.JWT_SECRET || secretKey;
 
 
 // Register
-router.post('/register', async (req, res) => {
+router.post('/register', registerValidator, async (req, res) => {
   try {
     const { email, password, fullname } = req.body;
     const newUser = await User.create({ email, password, fullname });
@@ -46,7 +46,7 @@ router.post('/login', async (req, res) => {
 
 
 // Update User (PUT)
-router.put('/:id', authMiddleware, async (req, res) => {
+router.put('/:id', authMiddleware, updateValidator, async (req, res) => {
   try {
     const { email, fullname } = req.body;
     if (req.user.id !== parseInt(req.params.id) && !req.user.issuperadmin) {

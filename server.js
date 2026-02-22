@@ -1,8 +1,11 @@
 const path = require('path');
 const express = require('express');
+const helmet = require('helmet');
+const cors = require('cors');
+const rateLimit = require('./middleware/rateLimit');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
-const sequelize = require('./config/db');
+const useForceSync = process.env.NODE_ENV === 'development';
 console.log('Requiring pets route...');
 
 const petsRouter = require('./routes/pets');
@@ -34,6 +37,9 @@ const limiter = rateLimit({
   max: 100, // limit each IP to 100 requests per windowMs
   message: 'Too many requests, please try again later.'
 });
+app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:3000' }));
+app.use(helmet());
+app.use(rateLimit);
 app.use(express.json());
 
 

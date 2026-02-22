@@ -1,7 +1,7 @@
 const jwt = require('jwt-simple');
 const User = require('../models/user');
 
-const secretKey = process.env.JWT_SECRET || secretKey;
+const secretKey = process.env.JWT_SECRET;
 
 // Middleware to check token (authMiddleware)
 const authMiddleware = async (req, res, next) => {
