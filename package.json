@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node -e \"console.log('No automated tests configured')\"",
+    "smoke": "node --check server.js && node --check routes/pets.js && node --check routes/tags.js"
   },
   "keywords": [],
   "author": "",
