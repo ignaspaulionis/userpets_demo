@@ -17,9 +17,4 @@ const Pet = sequelize.define('Pet', {
   },
 });
 
-// Sync the model with the database (create the table if it doesn't exist)
-sequelize.sync()
-  .then(() => console.log('Pet table has been created or verified!'))
-  .catch((err) => console.error('Error syncing the database:', err));
-
 module.exports = { Pet };

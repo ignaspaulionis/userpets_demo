@@ -7,9 +7,24 @@ console.log('Requiring pets route...');
 
 const petsRouter = require('./routes/pets');
 const userRouter = require('./routes/user');
+const tagsRouter = require('./routes/tags');
 
 const User = require('./models/user');
-const Pet = require('./models/pet');
+const { Pet } = require('./models/pet');
+const { Tag } = require('./models/tag');
+
+Pet.belongsToMany(Tag, {
+  through: 'PetTags',
+  foreignKey: 'petId',
+  otherKey: 'tagId',
+  onDelete: 'CASCADE',
+});
+Tag.belongsToMany(Pet, {
+  through: 'PetTags',
+  foreignKey: 'tagId',
+  otherKey: 'petId',
+  onDelete: 'CASCADE',
+});
 
 const app = express();
 app.use(express.json());
@@ -29,6 +44,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // Routes
 app.use('/pets', petsRouter);
 app.use('/users', userRouter);
+app.use('/tags', tagsRouter);
 
 // Initialize database and sync models
 sequelize.sync({ force: true })  // Cleans the DB on every load
