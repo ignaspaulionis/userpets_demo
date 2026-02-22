@@ -14,6 +14,15 @@ const Pet = sequelize.define('Pet', {
   age: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    validate: {
+      isInt: {
+        msg: 'Age must be a non-negative integer',
+      },
+      min: {
+        args: [0],
+        msg: 'Age must be a non-negative integer',
+      },
+    },
   },
 });
 
