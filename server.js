@@ -41,6 +41,15 @@ const swaggerSpec = swaggerJsdoc({
 });
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+  });
+});
+
 // Routes
 app.use('/pets', petsRouter);
 app.use('/users', userRouter);
