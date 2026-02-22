@@ -6,10 +6,11 @@ const sequelize = require('./config/db');
 console.log('Requiring pets route...');
 
 const petsRouter = require('./routes/pets');
+const tagsRouter = require('./routes/tags');
 const userRouter = require('./routes/user');
 
-const User = require('./models/user');
-const Pet = require('./models/pet');
+require('./models/user');
+require('./models/associations');
 
 const app = express();
 app.use(express.json());
@@ -28,6 +29,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Routes
 app.use('/pets', petsRouter);
+app.use('/tags', tagsRouter);
 app.use('/users', userRouter);
 
 // Initialize database and sync models
