@@ -1,14 +1,15 @@
+const path = require('path');
 const { Sequelize } = require('sequelize');
 
-// Use SQLite for the database
+const isTest = process.env.NODE_ENV === 'test';
+const dbStorage = process.env.DB_STORAGE
+  ? path.resolve(process.cwd(), process.env.DB_STORAGE)
+  : (isTest ? ':memory:' : path.join(__dirname, '..', 'database.sqlite'));
+
 const sequelize = new Sequelize({
   dialect: 'sqlite',
-  storage: './database.sqlite',  // SQLite file will be stored in the root of the project
+  storage: dbStorage,
+  logging: false,
 });
-
-sequelize
-  .authenticate()
-  .then(() => console.log('Connection has been established successfully.'))
-  .catch((err) => console.error('Unable to connect to the database:', err));
 
 module.exports = sequelize;
