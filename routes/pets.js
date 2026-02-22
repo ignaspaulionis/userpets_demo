@@ -10,8 +10,32 @@ const isNonEmptyString = (value) => typeof value === 'string' && value.trim().le
 // List Pets
 router.get('/', async (req, res) => {
   try {
-    const pets = await Pet.findAll({ include: Tag });
-    res.json(pets);
+    const { page = '1', limit = '10' } = req.query;
+
+    const pageNumber = Number(page);
+    const limitNumber = Number(limit);
+
+    if (!Number.isInteger(pageNumber) || pageNumber <= 0 || !Number.isInteger(limitNumber) || limitNumber <= 0) {
+      return res.status(400).json({ error: 'Page and limit must be positive integers' });
+    }
+
+    const offset = (pageNumber - 1) * limitNumber;
+
+    const { count, rows } = await Pet.findAndCountAll({
+      include: Tag,
+      distinct: true,
+      limit: limitNumber,
+      offset,
+    });
+
+    const totalPages = count === 0 ? 0 : Math.ceil(count / limitNumber);
+
+    res.json({
+      pets: rows,
+      totalCount: count,
+      currentPage: pageNumber,
+      totalPages,
+    });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
