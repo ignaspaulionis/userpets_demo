@@ -12,8 +12,21 @@ const secretKey = 'your_secret_key';
 // Register
 router.post('/register', async (req, res) => {
   try {
+    const requiredFields = ['email', 'password', 'fullname'];
+    const missingFields = requiredFields.filter((field) => {
+      const value = req.body?.[field];
+      return typeof value !== 'string' || value.trim().length === 0;
+    });
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        error: 'Missing required fields',
+        missingFields,
+      });
+    }
+
     const { email, password, fullname } = req.body;
-    const newUser = await User.create({ email, password, fullname });
+    await User.create({ email, password, fullname });
     res.status(201).json({ message: 'User registered successfully!' });
   } catch (err) {
     res.status(400).json({ error: err.message });
