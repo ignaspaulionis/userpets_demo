@@ -4,8 +4,12 @@ const bcrypt = require('bcryptjs');
 const User = require('../models/user');
 const { authMiddleware, isSuperadminMiddleware } = require('../middleware/auth');
 
+const Joi = require('joi');
+require('express-async-errors');
+const userValidation = require('../validation/userValidation');
+
 const router = express.Router();
-const secretKey = process.env.JWT_SECRET || 'default_jwt_secret';
+const secretKey = process.env.JWT_SECRET || secretKey;
 
 
 
