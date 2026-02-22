@@ -122,5 +122,25 @@ router.get('/:id/pets', async (req, res) => {
   }
 });
 
+// Delete User
+router.delete('/:id', authMiddleware, async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id, 10);
+
+    if (req.user.id !== userId && !req.user.issuperadmin) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    await user.destroy();
+    return res.status(204).end();
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
 
 module.exports = router;
