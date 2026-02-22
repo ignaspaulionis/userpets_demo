@@ -1,6 +1,7 @@
 const express = require('express');
 const { Pet } = require('../models/pet');  // Import the Pet model
 const { Tag } = require('../models/tag');
+const { handleRouteError } = require('../utils/errorHandler');
 
 const router = express.Router();
 
@@ -13,7 +14,7 @@ router.get('/', async (req, res) => {
     const pets = await Pet.findAll({ include: Tag });
     res.json(pets);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    handleRouteError(err, res);
   }
 });
 
@@ -41,7 +42,7 @@ router.post('/', async (req, res) => {
     const newPet = await Pet.create({ name, type: type.toLowerCase(), age });
     res.status(201).json(newPet);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    handleRouteError(err, res);
   }
 });
 
@@ -59,7 +60,7 @@ router.put('/:id', async (req, res) => {
     await pet.save();
     res.json(pet);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    handleRouteError(err, res);
   }
 });
 
@@ -77,7 +78,7 @@ router.patch('/:id', async (req, res) => {
     await pet.save();
     res.json(pet);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    handleRouteError(err, res);
   }
 });
 
@@ -104,7 +105,7 @@ router.post('/:petId/tags/:tagId', async (req, res) => {
     const updatedPet = await Pet.findByPk(petId, { include: Tag });
     res.json(updatedPet);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    handleRouteError(err, res);
   }
 });
 
@@ -130,7 +131,7 @@ router.delete('/:petId/tags/:tagId', async (req, res) => {
     await pet.removeTag(tag);
     res.status(204).end();
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    handleRouteError(err, res);
   }
 });
 
@@ -152,7 +153,7 @@ router.delete('/:id', async (req, res) => {
     await pet.destroy();
     res.status(204).end();
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    handleRouteError(err, res);
   }
 });
 

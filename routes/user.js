@@ -3,6 +3,7 @@ const jwt = require('jwt-simple');
 const bcrypt = require('bcryptjs');
 const User = require('../models/user');
 const { authMiddleware, isSuperadminMiddleware } = require('../middleware/auth');
+const { handleRouteError } = require('../utils/errorHandler');
 
 const router = express.Router();
 const secretKey = 'your_secret_key';
@@ -16,7 +17,7 @@ router.post('/register', async (req, res) => {
     const newUser = await User.create({ email, password, fullname });
     res.status(201).json({ message: 'User registered successfully!' });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    handleRouteError(err, res);
   }
 });
 
@@ -34,7 +35,7 @@ router.post('/login', async (req, res) => {
     const token = jwt.encode(payload, secretKey);
     res.json({ token });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    handleRouteError(err, res);
   }
 });
 
@@ -56,7 +57,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
     await user.save();
     res.json({ message: 'User updated successfully', user });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    handleRouteError(err, res);
   }
 });
 
@@ -78,7 +79,7 @@ router.patch('/:id', authMiddleware, async (req, res) => {
     await user.save();
     res.json({ message: 'User updated successfully', user });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    handleRouteError(err, res);
   }
 });
 
@@ -90,7 +91,7 @@ router.get('/', authMiddleware, async (req, res) => {
       return res.json(users);
 
     } catch (err) {
-      res.status(400).json({ error: err.message });
+      handleRouteError(err, res);
     }
   });
 
@@ -101,7 +102,7 @@ router.get('/user-stats', async (req, res) => {
       return res.json(users);
 
     } catch (err) {
-      res.status(400).json({ error: err.message });
+      handleRouteError(err, res);
     }
   });
 

@@ -48,7 +48,10 @@ app.use('/tags', tagsRouter);
 
 // Initialize database and sync models
 sequelize.sync({ force: true })  // Cleans the DB on every load
-  .then(() => console.log('Database synced'));
+  .then(() => console.log('Database synced'))
+  .catch((err) => {
+    console.error('Database sync failed:', err);
+  });
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {

@@ -1,5 +1,6 @@
 const express = require('express');
 const { Tag } = require('../models/tag');
+const { handleRouteError } = require('../utils/errorHandler');
 
 const router = express.Router();
 
@@ -11,7 +12,7 @@ router.get('/', async (req, res) => {
     const tags = await Tag.findAll();
     res.json(tags);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    handleRouteError(err, res);
   }
 });
 
@@ -26,7 +27,7 @@ router.post('/', async (req, res) => {
     const tag = await Tag.create({ name: name.trim() });
     res.status(201).json(tag);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    handleRouteError(err, res);
   }
 });
 
@@ -52,7 +53,7 @@ router.put('/:id', async (req, res) => {
     await tag.save();
     res.json(tag);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    handleRouteError(err, res);
   }
 });
 
@@ -81,7 +82,7 @@ router.patch('/:id', async (req, res) => {
     await tag.save();
     res.json(tag);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    handleRouteError(err, res);
   }
 });
 
@@ -101,7 +102,7 @@ router.delete('/:id', async (req, res) => {
     await tag.destroy();
     res.status(204).end();
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    handleRouteError(err, res);
   }
 });
 
