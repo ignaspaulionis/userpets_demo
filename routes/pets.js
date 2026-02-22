@@ -1,13 +1,16 @@
 const express = require('express');
 const { Pet } = require('../models/pet');  // Import the Pet model
-const { authMiddleware, isSuperadminMiddleware } = require('../middleware/auth');
+const { Tag } = require('../models/tag');
 
 const router = express.Router();
+
+const isValidId = (value) => Number.isInteger(Number(value)) && Number(value) > 0;
+const isNonEmptyString = (value) => typeof value === 'string' && value.trim().length > 0;
 
 // List Pets
 router.get('/', async (req, res) => {
   try {
-    const pets = await Pet.findAll();
+    const pets = await Pet.findAll({ include: Tag });
     res.json(pets);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -78,13 +81,74 @@ router.patch('/:id', async (req, res) => {
   }
 });
 
-// Delete Pet
-router.delete('/:id', async (req, res) => {
+// Assign tag to pet
+router.post('/:petId/tags/:tagId', async (req, res) => {
   try {
-    const pet = await Pet.findByPk(req.params.id);
+    const { petId, tagId } = req.params;
+
+    if (!isValidId(petId) || !isValidId(tagId)) {
+      return res.status(400).json({ error: 'Invalid pet id or tag id' });
+    }
+
+    const pet = await Pet.findByPk(petId);
     if (!pet) {
       return res.status(404).json({ error: 'Pet not found' });
     }
+
+    const tag = await Tag.findByPk(tagId);
+    if (!tag) {
+      return res.status(404).json({ error: 'Tag not found' });
+    }
+
+    await pet.addTag(tag);
+    const updatedPet = await Pet.findByPk(petId, { include: Tag });
+    res.json(updatedPet);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Remove tag from pet
+router.delete('/:petId/tags/:tagId', async (req, res) => {
+  try {
+    const { petId, tagId } = req.params;
+
+    if (!isValidId(petId) || !isValidId(tagId)) {
+      return res.status(400).json({ error: 'Invalid pet id or tag id' });
+    }
+
+    const pet = await Pet.findByPk(petId);
+    if (!pet) {
+      return res.status(404).json({ error: 'Pet not found' });
+    }
+
+    const tag = await Tag.findByPk(tagId);
+    if (!tag) {
+      return res.status(404).json({ error: 'Tag not found' });
+    }
+
+    await pet.removeTag(tag);
+    res.status(204).end();
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Delete Pet
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!isValidId(id)) {
+      return res.status(400).json({ error: 'Invalid pet id' });
+    }
+
+    const pet = await Pet.findByPk(id, { include: Tag });
+    if (!pet) {
+      return res.status(404).json({ error: 'Pet not found' });
+    }
+
+    await pet.setTags([]);
     await pet.destroy();
     res.status(204).end();
   } catch (err) {
