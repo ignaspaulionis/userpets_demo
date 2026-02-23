@@ -7,10 +7,43 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 20px;
+      margin: 0;
+      color: #222;
+    }
+    .menu {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      background: #f4f4f4;
+      border-bottom: 1px solid #ddd;
+    }
+    .menu-links {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+    .menu a,
+    .menu button {
+      text-decoration: none;
+      color: #1a5fb4;
+      font-size: 14px;
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .menu a:hover,
+    .menu button:hover {
+      text-decoration: underline;
+    }
+    .menu-status {
+      color: #666;
+      font-size: 13px;
     }
     .container {
-      margin-top: 50px;
+      margin: 50px 20px 0;
       text-align: center;
     }
     .info {
@@ -24,6 +57,15 @@
   </style>
 </head>
 <body>
+  <nav class="menu" aria-label="Dashboard menu">
+    <div class="menu-links">
+      <a href="/dashboard.html">Dashboard</a>
+      <a href="/api-docs">API Docs</a>
+      <button id="logout-btn" type="button">Logout</button>
+    </div>
+    <div id="auth-status" class="menu-status"></div>
+  </nav>
+
   <div class="container">
     <h1>User Information</h1>
     <div id="user-info" class="info">Loading...</div>
@@ -33,13 +75,18 @@
   </div>
 
   <script>
-    // Function to fetch the user information
+    function updateAuthStatus() {
+      const token = localStorage.getItem('token');
+      const authStatus = document.getElementById('auth-status');
+      authStatus.textContent = token ? 'Token present' : 'Token missing';
+    }
+
     async function fetchUserInfo() {
       try {
         const response = await fetch('/users/user-stats', {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}` // Assuming JWT is stored in localStorage
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
         });
 
@@ -47,13 +94,10 @@
           throw new Error('Failed to fetch user info');
         }
 
-      const users = await response.json(); // This is an array of users
-      const userInfoDiv = document.getElementById('user-info');
-
-        // Clear the div before adding new content
+        const users = await response.json();
+        const userInfoDiv = document.getElementById('user-info');
         userInfoDiv.innerHTML = '';
 
-        // Check if users exist and loop through them
         if (users && users.length > 0) {
           users.forEach(user => {
             const userElement = document.createElement('div');
@@ -66,17 +110,20 @@
         } else {
           userInfoDiv.innerHTML = 'User not found.';
         }
-
       } catch (error) {
         document.getElementById('user-info').innerText = 'Error fetching user info';
         console.error('Error fetching user info:', error);
       }
     }
 
-    // Refresh the page content every 5 seconds
-    setInterval(fetchUserInfo, 5000);
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      localStorage.removeItem('token');
+      updateAuthStatus();
+      window.location.href = '/';
+    });
 
-    // Fetch the user info when the page loads
+    updateAuthStatus();
+    setInterval(fetchUserInfo, 5000);
     fetchUserInfo();
   </script>
 </body>
