@@ -1,135 +1,189 @@
 {
-    "swagger": "2.0",
-    "info": {
-      "title": "Pets API",
-      "version": "1.0.0"
-    },
-    "paths": {
-      "/pets": {
-        "get": {
-          "summary": "Get a list of pets",
-          "responses": {
-            "200": {
-              "description": "A list of pets",
-              "schema": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/definitions/Pet"
-                }
-              }
-            }
+  "swagger": "2.0",
+  "info": {
+    "title": "Pets API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/pets": {
+      "get": {
+        "summary": "Get a paginated list of pets",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "type": "integer",
+            "minimum": 1,
+            "required": false,
+            "default": 1,
+            "description": "Page number (positive integer)"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "type": "integer",
+            "minimum": 1,
+            "required": false,
+            "default": 10,
+            "description": "Items per page (positive integer)"
           }
-        },
-        "post": {
-          "summary": "Add a new pet",
-          "parameters": [
-            {
-              "in": "body",
-              "name": "pet",
-              "description": "Pet to be added",
-              "schema": {
-                "$ref": "#/definitions/Pet"
-              }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated pets response",
+            "schema": {
+              "$ref": "#/definitions/PaginatedPetsResponse"
             }
-          ],
-          "responses": {
-            "201": {
-              "description": "Pet added successfully"
+          },
+          "400": {
+            "description": "Invalid pagination parameters",
+            "schema": {
+              "$ref": "#/definitions/Error"
             }
           }
         }
       },
-      "/pets/{id}": {
-        "put": {
-          "summary": "Update a pet",
-          "parameters": [
-            {
-              "in": "path",
-              "name": "id",
-              "required": true,
-              "type": "integer",
-              "description": "Pet ID"
-            },
-            {
-              "in": "body",
-              "name": "pet",
-              "description": "Pet data to update",
-              "schema": {
-                "$ref": "#/definitions/Pet"
-              }
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Pet updated successfully"
+      "post": {
+        "summary": "Add a new pet",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "pet",
+            "description": "Pet to be added",
+            "schema": {
+              "$ref": "#/definitions/Pet"
             }
           }
-        },
-        "patch": {
-          "summary": "Partially update a pet",
-          "parameters": [
-            {
-              "in": "path",
-              "name": "id",
-              "required": true,
-              "type": "integer",
-              "description": "Pet ID"
-            },
-            {
-              "in": "body",
-              "name": "pet",
-              "description": "Pet data to partially update",
-              "schema": {
-                "$ref": "#/definitions/Pet"
-              }
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Pet partially updated successfully"
-            }
-          }
-        },
-        "delete": {
-          "summary": "Delete a pet",
-          "parameters": [
-            {
-              "in": "path",
-              "name": "id",
-              "required": true,
-              "type": "integer",
-              "description": "Pet ID"
-            }
-          ],
-          "responses": {
-            "204": {
-              "description": "Pet deleted successfully"
-            }
+        ],
+        "responses": {
+          "201": {
+            "description": "Pet added successfully"
           }
         }
       }
     },
-    "definitions": {
-      "Pet": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer"
-          },
-          "name": {
-            "type": "string",
-            "example": "Bella"
-          },
-          "type": {
-            "type": "string",
-            "example": "Dog"
-          },
-          "age": {
+    "/pets/{id}": {
+      "put": {
+        "summary": "Update a pet",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
             "type": "integer",
-            "example": 3
+            "description": "Pet ID"
+          },
+          {
+            "in": "body",
+            "name": "pet",
+            "description": "Pet data to update",
+            "schema": {
+              "$ref": "#/definitions/Pet"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pet updated successfully"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Partially update a pet",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "type": "integer",
+            "description": "Pet ID"
+          },
+          {
+            "in": "body",
+            "name": "pet",
+            "description": "Pet data to partially update",
+            "schema": {
+              "$ref": "#/definitions/Pet"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pet partially updated successfully"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a pet",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "type": "integer",
+            "description": "Pet ID"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Pet deleted successfully"
           }
         }
       }
     }
+  },
+  "definitions": {
+    "Pet": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string",
+          "example": "Bella"
+        },
+        "type": {
+          "type": "string",
+          "example": "Dog"
+        },
+        "age": {
+          "type": "integer",
+          "example": 3
+        }
+      }
+    },
+    "PaginatedPetsResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Pet"
+          }
+        },
+        "totalCount": {
+          "type": "integer",
+          "example": 0
+        },
+        "currentPage": {
+          "type": "integer",
+          "example": 1
+        },
+        "totalPages": {
+          "type": "integer",
+          "example": 0
+        }
+      }
+    },
+    "Error": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string",
+          "example": "page and limit must be positive integers"
+        }
+      }
+    }
   }
-  
+}
