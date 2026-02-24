@@ -140,8 +140,42 @@ router.delete('/:id', async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
+    await Pet.update({ userId: null }, { where: { userId: Number(id) } });
     await user.destroy();
     return res.status(204).end();
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
+});
+
+router.post('/', async (req, res) => {
+  try {
+    const { email, password, fullname } = req.body;
+
+    if (typeof fullname !== 'string' || fullname.trim().length === 0) {
+      return res.status(400).json({ error: 'fullname is required' });
+    }
+
+    if (typeof email !== 'string' || email.trim().length === 0) {
+      return res.status(400).json({ error: 'email is required' });
+    }
+
+    if (typeof password !== 'string' || password.length === 0) {
+      return res.status(400).json({ error: 'password is required' });
+    }
+
+    const newUser = await User.create({
+      email: email.trim(),
+      password,
+      fullname: fullname.trim(),
+    });
+
+    return res.status(201).json({
+      id: newUser.id,
+      email: newUser.email,
+      fullname: newUser.fullname,
+      issuperadmin: newUser.issuperadmin,
+    });
   } catch (err) {
     return res.status(400).json({ error: err.message });
   }
