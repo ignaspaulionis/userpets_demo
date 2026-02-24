@@ -17,6 +17,54 @@ router.get('/', async (req, res) => {
   }
 });
 
+// List Pets with pagination
+router.get('/api', async (req, res) => {
+  try {
+    const rawPage = req.query.page;
+    const rawLimit = req.query.limit;
+
+    let page = 1;
+    let limit = 10;
+
+    if (rawPage !== undefined) {
+      if (!/^\d+$/.test(String(rawPage)) || Number(rawPage) < 1) {
+        return res.status(400).json({ error: 'Invalid page value. Page must be a positive integer.' });
+      }
+      page = Number(rawPage);
+    }
+
+    if (rawLimit !== undefined) {
+      if (!/^\d+$/.test(String(rawLimit)) || Number(rawLimit) < 1) {
+        return res.status(400).json({ error: 'Invalid limit value. Limit must be a positive integer.' });
+      }
+      limit = Math.min(Number(rawLimit), 100);
+    }
+
+    const offset = (page - 1) * limit;
+
+    const { count, rows } = await Pet.findAndCountAll({
+      include: Tag,
+      limit,
+      offset,
+      distinct: true,
+    });
+
+    const totalPages = count === 0 ? 0 : Math.ceil(count / limit);
+
+    res.json({
+      data: rows,
+      pagination: {
+        page,
+        limit,
+        total: count,
+        totalPages,
+      },
+    });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 // Add Pet
 router.post('/', async (req, res) => {
   try {
