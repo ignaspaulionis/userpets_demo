@@ -45,10 +45,12 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // Rate limiting for API endpoints
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 100,
+  max: 100,
   standardHeaders: false,
   legacyHeaders: true,
-  message: { error: 'Too many requests, please try again later.' },
+  handler: (_req, res) => {
+    res.status(429).json({ error: 'Too many requests, please try again later.' });
+  },
 });
 
 // Routes
