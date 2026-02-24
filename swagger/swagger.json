@@ -108,7 +108,7 @@
         }
       }
     },
-    "/tags/{id}": {
+    "/api/tags/{id}": {
       "get": {
         "summary": "Get a single tag",
         "parameters": [
