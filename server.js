@@ -42,6 +42,13 @@ const swaggerSpec = swaggerJsdoc({
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Routes
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+  });
+});
+
 app.use('/pets', petsRouter);
 app.use('/users', userRouter);
 app.use('/tags', tagsRouter);
