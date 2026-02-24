@@ -17,6 +17,9 @@
                   "$ref": "#/definitions/Pet"
                 }
               }
+            },
+            "429": {
+              "description": "Too many requests"
             }
           }
         },

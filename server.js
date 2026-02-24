@@ -2,6 +2,7 @@ const path = require('path');
 const express = require('express');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
+const rateLimit = require('express-rate-limit');
 const sequelize = require('./config/db');
 console.log('Requiring pets route...');
 
@@ -41,7 +42,17 @@ const swaggerSpec = swaggerJsdoc({
 });
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
+// Rate limiting for API endpoints
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 100,
+  standardHeaders: false,
+  legacyHeaders: true,
+  message: { error: 'Too many requests, please try again later.' },
+});
+
 // Routes
+app.use(['/pets', '/users', '/tags'], apiLimiter);
 app.use('/pets', petsRouter);
 app.use('/users', userRouter);
 app.use('/tags', tagsRouter);
