@@ -7,10 +7,45 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 20px;
+      margin: 0;
+      background: #f5f7fa;
+      color: #1f2937;
+    }
+    .menu {
+      background: #111827;
+      color: #ffffff;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .menu-links {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .menu a {
+      color: #ffffff;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .menu a:hover {
+      text-decoration: underline;
+    }
+    .menu-actions button {
+      border: 1px solid #ffffff;
+      background: transparent;
+      color: #ffffff;
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .menu-actions button:hover {
+      background: rgba(255, 255, 255, 0.2);
     }
     .container {
-      margin-top: 50px;
+      margin: 40px 20px;
       text-align: center;
     }
     .info {
@@ -21,18 +56,47 @@
       margin-top: 20px;
       color: gray;
     }
+    .token-status {
+      margin-top: 8px;
+      font-size: 14px;
+      color: #6b7280;
+    }
   </style>
 </head>
 <body>
+  <nav class="menu">
+    <div class="menu-links">
+      <a href="/dashboard.html">Dashboard</a>
+      <a href="/api-docs">API Docs</a>
+    </div>
+    <div class="menu-actions">
+      <button id="logout-btn" type="button">Logout</button>
+    </div>
+  </nav>
   <div class="container">
     <h1>User Information</h1>
     <div id="user-info" class="info">Loading...</div>
     <div class="refresh-time">
       <small>Refreshing every 5 seconds...</small>
+      <div id="token-status" class="token-status"></div>
     </div>
   </div>
 
   <script>
+    const tokenStatus = document.getElementById('token-status');
+
+    function updateTokenStatus() {
+      tokenStatus.innerText = localStorage.getItem('token')
+        ? 'Authentication token detected'
+        : 'Token missing: data requests may fail';
+    }
+
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      localStorage.removeItem('token');
+      updateTokenStatus();
+      window.location.href = '/';
+    });
+
     // Function to fetch the user information
     async function fetchUserInfo() {
       try {
@@ -72,6 +136,8 @@
         console.error('Error fetching user info:', error);
       }
     }
+
+    updateTokenStatus();
 
     // Refresh the page content every 5 seconds
     setInterval(fetchUserInfo, 5000);
