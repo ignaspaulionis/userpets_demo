@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
 
-const { authMiddleware } = require('../middleware/auth');
+const { basicAuthMiddleware } = require('../middleware/auth');
 const User = require('../models/user');
 const { Pet } = require('../models/pet');
 
-router.get('/stats', authMiddleware, async (req, res) => {
+router.get('/stats', basicAuthMiddleware, async (req, res) => {
   try {
     const [users, pets] = await Promise.all([User.count(), Pet.count()]);
     return res.status(200).json({ users, pets });

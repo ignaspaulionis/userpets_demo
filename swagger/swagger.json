@@ -4,7 +4,37 @@
       "title": "Pets API",
       "version": "1.0.0"
     },
+    "securityDefinitions": {
+      "basicAuth": {
+        "type": "basic"
+      }
+    },
     "paths": {
+      "/api/stats": {
+        "get": {
+          "summary": "Get system statistics",
+          "security": [
+            {
+              "basicAuth": []
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Statistics response",
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "users": { "type": "integer", "example": 5 },
+                  "pets": { "type": "integer", "example": 12 }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized"
+            }
+          }
+        }
+      },
       "/pets": {
         "get": {
           "summary": "Get a list of pets",

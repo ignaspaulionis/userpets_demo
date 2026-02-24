@@ -33,4 +33,28 @@ const isSuperadminMiddleware = (req, res, next) => {
   next();
 };
 
-module.exports = { authMiddleware, isSuperadminMiddleware };
+const basicAuthMiddleware = (req, res, next) => {
+  const authHeader = req.headers.authorization || '';
+  if (!authHeader.startsWith('Basic ')) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const base64Credentials = authHeader.split(' ')[1] || '';
+  let credentials = '';
+
+  try {
+    credentials = Buffer.from(base64Credentials, 'base64').toString('utf8');
+  } catch (err) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const [username, password] = credentials.split(':');
+
+  if (username !== 'admin' || password !== 'password') {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  next();
+};
+
+module.exports = { authMiddleware, isSuperadminMiddleware, basicAuthMiddleware };
