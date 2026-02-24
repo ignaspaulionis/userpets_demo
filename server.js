@@ -33,8 +33,9 @@ const corsOptions = {
   optionsSuccessStatus: 204,
 };
 
-app.use(express.json());
 app.use(cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
+app.use(express.json());
 
 // Serve the index.html page at the root URL
 app.use(express.static(path.join(__dirname, 'public'))); // Adjust the folder name if necessary
@@ -52,6 +53,18 @@ app.use('/pets', petsRouter);
 app.use('/api/pets', petsRouter);
 app.use('/users', userRouter);
 app.use('/tags', tagsRouter);
+
+app.use((err, req, res, next) => {
+  if (err && err.type === 'entity.parse.failed') {
+    return res.status(400).json({ error: 'Invalid JSON payload' });
+  }
+
+  if (err) {
+    return res.status(err.status || 500).json({ error: err.message || 'Internal Server Error' });
+  }
+
+  next();
+});
 
 // Initialize database and sync models
 sequelize.sync({ force: true })  // Cleans the DB on every load
