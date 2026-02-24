@@ -44,7 +44,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // Routes
 app.use('/pets', petsRouter);
 app.use('/users', userRouter);
-app.use('/api', userRouter);
+app.use('/api/users', userRouter);
 app.use('/tags', tagsRouter);
 
 // Initialize database and sync models
