@@ -39,6 +39,32 @@
           }
         }
       },
+      "/pets/types": {
+        "get": {
+          "summary": "Get allowed pet types",
+          "responses": {
+            "200": {
+              "description": "Allowed pet types",
+              "schema": {
+                "$ref": "#/definitions/PetTypesResponse"
+              }
+            }
+          }
+        }
+      },
+      "/api/pets/types": {
+        "get": {
+          "summary": "Get allowed pet types",
+          "responses": {
+            "200": {
+              "description": "Allowed pet types",
+              "schema": {
+                "$ref": "#/definitions/PetTypesResponse"
+              }
+            }
+          }
+        }
+      },
       "/pets/{id}": {
         "put": {
           "summary": "Update a pet",
@@ -122,11 +148,25 @@
           },
           "type": {
             "type": "string",
-            "example": "Dog"
+            "enum": ["dog", "cat", "bird", "fish", "hamster"],
+            "example": "dog"
           },
           "age": {
             "type": "integer",
             "example": 3
+          }
+        }
+      },
+      "PetTypesResponse": {
+        "type": "object",
+        "properties": {
+          "types": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["dog", "cat", "bird", "fish", "hamster"]
+            },
+            "example": ["dog", "cat", "bird", "fish", "hamster"]
           }
         }
       }
