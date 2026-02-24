@@ -8,6 +8,24 @@
       "/pets": {
         "get": {
           "summary": "Get a list of pets",
+          "parameters": [
+            {
+              "in": "query",
+              "name": "minAge",
+              "type": "integer",
+              "minimum": 0,
+              "required": false,
+              "description": "Optional minimum age filter (inclusive)"
+            },
+            {
+              "in": "query",
+              "name": "maxAge",
+              "type": "integer",
+              "minimum": 0,
+              "required": false,
+              "description": "Optional maximum age filter (inclusive)"
+            }
+          ],
           "responses": {
             "200": {
               "description": "A list of pets",
@@ -17,6 +35,9 @@
                   "$ref": "#/definitions/Pet"
                 }
               }
+            },
+            "400": {
+              "description": "Invalid age query parameters"
             }
           }
         },
