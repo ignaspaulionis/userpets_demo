@@ -122,7 +122,8 @@
           },
           "type": {
             "type": "string",
-            "example": "Dog"
+            "enum": ["dog", "cat", "bird", "fish", "hamster", "rabbit", "turtle"],
+            "example": "dog"
           },
           "age": {
             "type": "integer",
