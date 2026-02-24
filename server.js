@@ -50,9 +50,11 @@ app.use('/api', statsRouter);
 
 // Initialize database and sync models
 sequelize.sync({ force: true })  // Cleans the DB on every load
-  .then(() => console.log('Database synced'));
+  .then(() => {
+    console.log('Database synced');
 
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
-});
+    const port = process.env.PORT || 3000;
+    app.listen(port, () => {
+      console.log(`Server running on http://localhost:${port}`);
+    });
+  });
