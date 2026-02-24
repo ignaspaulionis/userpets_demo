@@ -1,6 +1,7 @@
 const express = require('express');
 const { Pet } = require('../models/pet');  // Import the Pet model
 const { Tag } = require('../models/tag');
+const User = require('../models/user');
 
 const router = express.Router();
 
@@ -10,7 +11,12 @@ const isNonEmptyString = (value) => typeof value === 'string' && value.trim().le
 // List Pets
 router.get('/', async (req, res) => {
   try {
-    const pets = await Pet.findAll({ include: Tag });
+    const pets = await Pet.findAll({
+      include: [
+        { model: Tag },
+        { model: User, attributes: ['id', 'fullname'] },
+      ],
+    });
     res.json(pets);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -20,7 +26,7 @@ router.get('/', async (req, res) => {
 // Add Pet
 router.post('/', async (req, res) => {
   try {
-    const { name, type, age } = req.body;
+    const { name, type, age, userId } = req.body;
     
     // Validate name
     if (!name || typeof name !== 'string' || name.length < 2 || name.length > 50) {
@@ -38,7 +44,18 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: "Type must be one of: dog, cat, bird, fish, hamster" });
     }
     
-    const newPet = await Pet.create({ name, type: type.toLowerCase(), age });
+    if (userId !== undefined && userId !== null) {
+      if (!Number.isInteger(Number(userId)) || Number(userId) <= 0) {
+        return res.status(400).json({ error: 'userId must be a positive integer' });
+      }
+
+      const owner = await User.findByPk(Number(userId));
+      if (!owner) {
+        return res.status(400).json({ error: 'User not found for provided userId' });
+      }
+    }
+
+    const newPet = await Pet.create({ name, type: type.toLowerCase(), age, userId: userId ?? null });
     res.status(201).json(newPet);
   } catch (err) {
     res.status(400).json({ error: err.message });

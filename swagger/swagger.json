@@ -1,135 +1,188 @@
 {
-    "swagger": "2.0",
-    "info": {
-      "title": "Pets API",
-      "version": "1.0.0"
-    },
-    "paths": {
-      "/pets": {
-        "get": {
-          "summary": "Get a list of pets",
-          "responses": {
-            "200": {
-              "description": "A list of pets",
-              "schema": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/definitions/Pet"
-                }
-              }
-            }
-          }
-        },
-        "post": {
-          "summary": "Add a new pet",
-          "parameters": [
-            {
-              "in": "body",
-              "name": "pet",
-              "description": "Pet to be added",
-              "schema": {
+  "swagger": "2.0",
+  "info": {
+    "title": "Pets API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/pets": {
+      "get": {
+        "summary": "Get a list of pets",
+        "responses": {
+          "200": {
+            "description": "A list of pets",
+            "schema": {
+              "type": "array",
+              "items": {
                 "$ref": "#/definitions/Pet"
               }
-            }
-          ],
-          "responses": {
-            "201": {
-              "description": "Pet added successfully"
             }
           }
         }
       },
-      "/pets/{id}": {
-        "put": {
-          "summary": "Update a pet",
-          "parameters": [
-            {
-              "in": "path",
-              "name": "id",
-              "required": true,
-              "type": "integer",
-              "description": "Pet ID"
-            },
-            {
-              "in": "body",
-              "name": "pet",
-              "description": "Pet data to update",
-              "schema": {
-                "$ref": "#/definitions/Pet"
-              }
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Pet updated successfully"
+      "post": {
+        "summary": "Add a new pet",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "pet",
+            "description": "Pet to be added",
+            "schema": {
+              "$ref": "#/definitions/NewPet"
             }
           }
-        },
-        "patch": {
-          "summary": "Partially update a pet",
-          "parameters": [
-            {
-              "in": "path",
-              "name": "id",
-              "required": true,
-              "type": "integer",
-              "description": "Pet ID"
-            },
-            {
-              "in": "body",
-              "name": "pet",
-              "description": "Pet data to partially update",
-              "schema": {
-                "$ref": "#/definitions/Pet"
-              }
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Pet partially updated successfully"
-            }
-          }
-        },
-        "delete": {
-          "summary": "Delete a pet",
-          "parameters": [
-            {
-              "in": "path",
-              "name": "id",
-              "required": true,
-              "type": "integer",
-              "description": "Pet ID"
-            }
-          ],
-          "responses": {
-            "204": {
-              "description": "Pet deleted successfully"
-            }
+        ],
+        "responses": {
+          "201": {
+            "description": "Pet added successfully"
+          },
+          "400": {
+            "description": "Validation error"
           }
         }
       }
     },
-    "definitions": {
-      "Pet": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer"
-          },
-          "name": {
-            "type": "string",
-            "example": "Bella"
-          },
-          "type": {
-            "type": "string",
-            "example": "Dog"
-          },
-          "age": {
+    "/pets/{id}": {
+      "put": {
+        "summary": "Update a pet",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
             "type": "integer",
-            "example": 3
+            "description": "Pet ID"
+          },
+          {
+            "in": "body",
+            "name": "pet",
+            "description": "Pet data to update",
+            "schema": {
+              "$ref": "#/definitions/Pet"
+            }
           }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pet updated successfully"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Partially update a pet",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "type": "integer",
+            "description": "Pet ID"
+          },
+          {
+            "in": "body",
+            "name": "pet",
+            "description": "Pet data to partially update",
+            "schema": {
+              "$ref": "#/definitions/Pet"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pet partially updated successfully"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a pet",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "type": "integer",
+            "description": "Pet ID"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Pet deleted successfully"
+          }
+        }
+      }
+    },
+    "/users/{id}/pets": {
+      "get": {
+        "summary": "Get all pets owned by a user",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "type": "integer",
+            "description": "User ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of user pets",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Pet"
+              }
+            }
+          },
+          "400": { "description": "Invalid user id" },
+          "404": { "description": "User not found" }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Owner": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer", "example": 1 },
+        "fullname": { "type": "string", "example": "John Doe" }
+      }
+    },
+    "NewPet": {
+      "type": "object",
+      "required": ["name", "type", "age"],
+      "properties": {
+        "name": { "type": "string", "example": "Bella" },
+        "type": { "type": "string", "enum": ["dog", "cat", "bird", "fish", "hamster"] },
+        "age": { "type": "integer", "example": 3 },
+        "userId": { "type": "integer", "example": 1 }
+      }
+    },
+    "Pet": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string",
+          "example": "Bella"
+        },
+        "type": {
+          "type": "string",
+          "example": "dog"
+        },
+        "age": {
+          "type": "integer",
+          "example": 3
+        },
+        "userId": {
+          "type": "integer",
+          "example": 1
+        },
+        "User": {
+          "$ref": "#/definitions/Owner"
         }
       }
     }
   }
-  
+}

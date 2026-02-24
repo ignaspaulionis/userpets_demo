@@ -2,10 +2,12 @@ const express = require('express');
 const jwt = require('jwt-simple');
 const bcrypt = require('bcryptjs');
 const User = require('../models/user');
+const { Pet } = require('../models/pet');
 const { authMiddleware, isSuperadminMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
 const secretKey = 'your_secret_key';
+const isValidId = (value) => Number.isInteger(Number(value)) && Number(value) > 0;
 
 
 
@@ -105,5 +107,24 @@ router.get('/user-stats', async (req, res) => {
     }
   });
 
+router.get('/:id/pets', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!isValidId(id)) {
+      return res.status(400).json({ error: 'Invalid user id' });
+    }
+
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const pets = await Pet.findAll({ where: { userId: Number(id) } });
+    return res.json(pets);
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
+});
 
 module.exports = router;
