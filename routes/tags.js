@@ -15,6 +15,25 @@ router.get('/', async (req, res) => {
   }
 });
 
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!isValidId(id)) {
+      return res.status(400).json({ error: 'Invalid tag id' });
+    }
+
+    const tag = await Tag.findByPk(id);
+    if (!tag) {
+      return res.status(404).json({ error: 'Tag not found' });
+    }
+
+    return res.status(200).json(tag);
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
+});
+
 router.post('/', async (req, res) => {
   try {
     const { name } = req.body;
