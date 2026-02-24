@@ -2,6 +2,7 @@ const path = require('path');
 const express = require('express');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
+const cors = require('cors');
 const sequelize = require('./config/db');
 console.log('Requiring pets route...');
 
@@ -27,8 +28,14 @@ Tag.belongsToMany(Pet, {
 });
 
 const app = express();
-app.use(express.json());
+const corsOptions = {
+  origin: '*',
+  optionsSuccessStatus: 204,
+};
 
+app.use(express.json());
+app.use(cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
 
 // Serve the index.html page at the root URL
 app.use(express.static(path.join(__dirname, 'public'))); // Adjust the folder name if necessary
