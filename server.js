@@ -46,6 +46,11 @@ app.use('/pets', petsRouter);
 app.use('/users', userRouter);
 app.use('/tags', tagsRouter);
 
+// Catch-all 404 for unknown routes
+app.use((req, res) => {
+  res.status(404).json({ error: 'Not found' });
+});
+
 // Initialize database and sync models
 sequelize.sync({ force: true })  // Cleans the DB on every load
   .then(() => console.log('Database synced'));
