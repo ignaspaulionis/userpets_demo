@@ -1,4 +1,5 @@
 const express = require('express');
+const { Op, fn, col, where } = require('sequelize');
 const { Pet } = require('../models/pet');  // Import the Pet model
 const { Tag } = require('../models/tag');
 
@@ -10,7 +11,17 @@ const isNonEmptyString = (value) => typeof value === 'string' && value.trim().le
 // List Pets
 router.get('/', async (req, res) => {
   try {
-    const pets = await Pet.findAll({ include: Tag });
+    const { name } = req.query;
+    const queryOptions = { include: Tag };
+
+    if (typeof name === 'string' && name.trim() !== '') {
+      const normalizedName = name.trim().toLowerCase();
+      queryOptions.where = where(fn('lower', col('Pet.name')), {
+        [Op.like]: `%${normalizedName}%`
+      });
+    }
+
+    const pets = await Pet.findAll(queryOptions);
     res.json(pets);
   } catch (err) {
     res.status(400).json({ error: err.message });
