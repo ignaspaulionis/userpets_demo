@@ -16,6 +16,14 @@ router.post('/register', async (req, res) => {
     const newUser = await User.create({ email, password, fullname });
     res.status(201).json({ message: 'User registered successfully!' });
   } catch (err) {
+    const hasInvalidEmailError = err?.name === 'SequelizeValidationError'
+      && Array.isArray(err.errors)
+      && err.errors.some((validationError) => validationError.path === 'email' && validationError.validatorKey === 'isEmail');
+
+    if (hasInvalidEmailError) {
+      return res.status(400).json({ error: 'Invalid email format' });
+    }
+
     res.status(400).json({ error: err.message });
   }
 });
