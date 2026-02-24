@@ -5,6 +5,14 @@ const router = express.Router();
 
 const isValidId = (value) => Number.isInteger(Number(value)) && Number(value) > 0;
 const isNonEmptyString = (value) => typeof value === 'string' && value.trim().length > 0;
+const normalizeDescription = (value) => {
+  if (value === undefined || value === null) {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length === 0 ? null : trimmed;
+};
 
 router.get('/', async (req, res) => {
   try {
@@ -17,13 +25,17 @@ router.get('/', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    const { name } = req.body;
+    const { name, description } = req.body;
 
     if (!isNonEmptyString(name)) {
       return res.status(400).json({ error: 'Name is required' });
     }
 
-    const tag = await Tag.create({ name: name.trim() });
+    if (description !== undefined && description !== null && typeof description !== 'string') {
+      return res.status(400).json({ error: 'Description must be a string' });
+    }
+
+    const tag = await Tag.create({ name: name.trim(), description: normalizeDescription(description) });
     res.status(201).json(tag);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -33,7 +45,7 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { name } = req.body;
+    const { name, description } = req.body;
 
     if (!isValidId(id)) {
       return res.status(400).json({ error: 'Invalid tag id' });
@@ -43,12 +55,17 @@ router.put('/:id', async (req, res) => {
       return res.status(400).json({ error: 'Name is required' });
     }
 
+    if (description !== undefined && description !== null && typeof description !== 'string') {
+      return res.status(400).json({ error: 'Description must be a string' });
+    }
+
     const tag = await Tag.findByPk(id);
     if (!tag) {
       return res.status(404).json({ error: 'Tag not found' });
     }
 
     tag.name = name.trim();
+    tag.description = normalizeDescription(description);
     await tag.save();
     res.json(tag);
   } catch (err) {
@@ -59,7 +76,7 @@ router.put('/:id', async (req, res) => {
 router.patch('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { name } = req.body;
+    const { name, description } = req.body;
 
     if (!isValidId(id)) {
       return res.status(400).json({ error: 'Invalid tag id' });
@@ -69,6 +86,10 @@ router.patch('/:id', async (req, res) => {
       return res.status(400).json({ error: 'Name must be a non-empty string' });
     }
 
+    if (description !== undefined && description !== null && typeof description !== 'string') {
+      return res.status(400).json({ error: 'Description must be a string' });
+    }
+
     const tag = await Tag.findByPk(id);
     if (!tag) {
       return res.status(404).json({ error: 'Tag not found' });
@@ -76,6 +97,10 @@ router.patch('/:id', async (req, res) => {
 
     if (name !== undefined) {
       tag.name = name.trim();
+    }
+
+    if (description !== undefined || description === null) {
+      tag.description = normalizeDescription(description);
     }
 
     await tag.save();

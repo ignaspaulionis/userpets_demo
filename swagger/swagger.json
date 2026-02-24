@@ -39,6 +39,120 @@
           }
         }
       },
+      "/tags": {
+        "get": {
+          "summary": "Get a list of tags",
+          "responses": {
+            "200": {
+              "description": "A list of tags",
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/Tag"
+                }
+              }
+            }
+          }
+        },
+        "post": {
+          "summary": "Add a new tag",
+          "parameters": [
+            {
+              "in": "body",
+              "name": "tag",
+              "description": "Tag to be added",
+              "required": true,
+              "schema": {
+                "$ref": "#/definitions/TagInput"
+              }
+            }
+          ],
+          "responses": {
+            "201": {
+              "description": "Tag added successfully",
+              "schema": {
+                "$ref": "#/definitions/Tag"
+              }
+            }
+          }
+        }
+      },
+      "/tags/{id}": {
+        "put": {
+          "summary": "Update a tag",
+          "parameters": [
+            {
+              "in": "path",
+              "name": "id",
+              "required": true,
+              "type": "integer",
+              "description": "Tag ID"
+            },
+            {
+              "in": "body",
+              "name": "tag",
+              "description": "Tag data to update",
+              "required": true,
+              "schema": {
+                "$ref": "#/definitions/TagInput"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Tag updated successfully",
+              "schema": {
+                "$ref": "#/definitions/Tag"
+              }
+            }
+          }
+        },
+        "patch": {
+          "summary": "Partially update a tag",
+          "parameters": [
+            {
+              "in": "path",
+              "name": "id",
+              "required": true,
+              "type": "integer",
+              "description": "Tag ID"
+            },
+            {
+              "in": "body",
+              "name": "tag",
+              "description": "Tag data to partially update",
+              "schema": {
+                "$ref": "#/definitions/TagPatch"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Tag partially updated successfully",
+              "schema": {
+                "$ref": "#/definitions/Tag"
+              }
+            }
+          }
+        },
+        "delete": {
+          "summary": "Delete a tag",
+          "parameters": [
+            {
+              "in": "path",
+              "name": "id",
+              "required": true,
+              "type": "integer",
+              "description": "Tag ID"
+            }
+          ],
+          "responses": {
+            "204": {
+              "description": "Tag deleted successfully"
+            }
+          }
+        }
+      },
       "/pets/{id}": {
         "put": {
           "summary": "Update a pet",
@@ -127,6 +241,48 @@
           "age": {
             "type": "integer",
             "example": 3
+          }
+        }
+      },
+      "Tag": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string",
+            "example": "Friendly"
+          },
+          "description": {
+            "type": "string",
+            "x-nullable": true,
+            "example": "Pets that are good with children"
+          }
+        }
+      },
+      "TagInput": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "x-nullable": true
+          }
+        }
+      },
+      "TagPatch": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "x-nullable": true
           }
         }
       }
