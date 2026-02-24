@@ -127,6 +127,16 @@
           "age": {
             "type": "integer",
             "example": 3
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-01-10T12:34:56.789Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-01-10T12:34:56.789Z"
           }
         }
       }
