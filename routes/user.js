@@ -12,8 +12,9 @@ const secretKey = 'your_secret_key';
 // Register
 router.post('/register', async (req, res) => {
   try {
-    const { email, password, fullname } = req.body;
-    const newUser = await User.create({ email, password, fullname });
+    const { email, password, fullname, username } = req.body;
+    const resolvedFullname = typeof fullname === 'string' && fullname.trim() ? fullname.trim() : username;
+    const newUser = await User.create({ email, password, fullname: resolvedFullname });
     res.status(201).json({ message: 'User registered successfully!' });
   } catch (err) {
     const hasInvalidEmailError = err?.name === 'SequelizeValidationError'
