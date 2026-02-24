@@ -35,7 +35,6 @@ const corsOptions = {
 
 app.use(express.json());
 app.use(cors(corsOptions));
-app.options(/.*/, cors(corsOptions));
 
 // Serve the index.html page at the root URL
 app.use(express.static(path.join(__dirname, 'public'))); // Adjust the folder name if necessary
