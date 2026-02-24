@@ -6,6 +6,7 @@ const router = express.Router();
 
 const isValidId = (value) => Number.isInteger(Number(value)) && Number(value) > 0;
 const isNonEmptyString = (value) => typeof value === 'string' && value.trim().length > 0;
+const isValidAge = (value) => Number.isInteger(value) && value >= 0;
 
 // List Pets
 router.get('/', async (req, res) => {
@@ -28,8 +29,8 @@ router.post('/', async (req, res) => {
     }
     
     // Validate age
-    if (age === undefined || age === null || !Number.isInteger(age) || age < 0 || age > 30) {
-      return res.status(400).json({ error: "Age must be an integer between 0 and 30" });
+    if (!isValidAge(age)) {
+      return res.status(400).json({ error: "Age must be a non-negative integer" });
     }
     
     // Validate type
@@ -49,6 +50,11 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { name, type, age } = req.body;
+
+    if (!isValidAge(age)) {
+      return res.status(400).json({ error: 'Age must be a non-negative integer' });
+    }
+
     const pet = await Pet.findByPk(req.params.id);
     if (!pet) {
       return res.status(404).json({ error: 'Pet not found' });
