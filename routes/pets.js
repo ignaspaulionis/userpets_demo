@@ -7,6 +7,11 @@ const router = express.Router();
 const isValidId = (value) => Number.isInteger(Number(value)) && Number(value) > 0;
 const isNonEmptyString = (value) => typeof value === 'string' && value.trim().length > 0;
 
+// Pet types
+router.get('/types', (req, res) => {
+  res.json(['dog', 'cat', 'bird', 'fish', 'hamster']);
+});
+
 // List Pets
 router.get('/', async (req, res) => {
   try {
