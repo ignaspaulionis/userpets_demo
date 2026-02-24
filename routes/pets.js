@@ -33,9 +33,9 @@ router.post('/', async (req, res) => {
     }
     
     // Validate type
-    const validTypes = ['dog', 'cat', 'bird', 'fish', 'hamster'];
+    const validTypes = ['dog', 'cat', 'bird', 'fish', 'hamster', 'rabbit', 'turtle'];
     if (!type || typeof type !== 'string' || !validTypes.includes(type.toLowerCase())) {
-      return res.status(400).json({ error: "Type must be one of: dog, cat, bird, fish, hamster" });
+      return res.status(400).json({ error: "Type must be one of: dog, cat, bird, fish, hamster, rabbit, turtle" });
     }
     
     const newPet = await Pet.create({ name, type: type.toLowerCase(), age });
