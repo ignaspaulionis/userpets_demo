@@ -39,6 +39,33 @@
           }
         }
       },
+      "/api/users": {
+        "post": {
+          "summary": "Create a new user",
+          "parameters": [
+            {
+              "in": "body",
+              "name": "user",
+              "description": "User payload",
+              "required": true,
+              "schema": {
+                "$ref": "#/definitions/ApiUserCreate"
+              }
+            }
+          ],
+          "responses": {
+            "201": {
+              "description": "User registered successfully"
+            },
+            "400": {
+              "description": "Validation or creation error",
+              "schema": {
+                "$ref": "#/definitions/ValidationError"
+              }
+            }
+          }
+        }
+      },
       "/pets/{id}": {
         "put": {
           "summary": "Update a pet",
@@ -110,6 +137,42 @@
       }
     },
     "definitions": {
+      "ApiUserCreate": {
+        "type": "object",
+        "required": ["name", "email", "password"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "john@example.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "secret123"
+          }
+        }
+      },
+      "ValidationError": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "Validation failed"
+          },
+          "details": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": ["email is required", "name must not be empty"]
+          }
+        }
+      },
       "Pet": {
         "type": "object",
         "properties": {
