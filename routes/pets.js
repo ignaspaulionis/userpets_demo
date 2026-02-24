@@ -27,8 +27,7 @@ router.get('/', async (req, res) => {
       include: Tag,
       limit,
       offset,
-      distinct: true,
-      col: 'Pet.id'
+      distinct: true
     });
 
     const totalPages = count === 0 ? 0 : Math.ceil(count / limit);
