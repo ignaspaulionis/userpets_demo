@@ -43,6 +43,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Routes
 app.use('/pets', petsRouter);
+app.use('/api/pets', petsRouter);
 app.use('/users', userRouter);
 app.use('/tags', tagsRouter);
 

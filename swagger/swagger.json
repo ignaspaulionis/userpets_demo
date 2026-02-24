@@ -39,6 +39,46 @@
           }
         }
       },
+      "/api/pets": {
+        "get": {
+          "summary": "Get a paginated list of pets",
+          "parameters": [
+            {
+              "in": "query",
+              "name": "page",
+              "required": false,
+              "type": "integer",
+              "default": 1,
+              "minimum": 1,
+              "description": "Page number"
+            },
+            {
+              "in": "query",
+              "name": "limit",
+              "required": false,
+              "type": "integer",
+              "default": 10,
+              "minimum": 1,
+              "maximum": 100,
+              "description": "Items per page (capped at 100)"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Paginated pets",
+              "schema": {
+                "$ref": "#/definitions/PaginatedPetsResponse"
+              }
+            },
+            "400": {
+              "description": "Invalid query parameter",
+              "schema": {
+                "$ref": "#/definitions/ErrorResponse"
+              }
+            }
+          }
+        }
+      },
       "/pets/{id}": {
         "put": {
           "summary": "Update a pet",
@@ -110,6 +150,33 @@
       }
     },
     "definitions": {
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        }
+      },
+      "Pagination": {
+        "type": "object",
+        "properties": {
+          "page": { "type": "integer", "example": 2 },
+          "limit": { "type": "integer", "example": 5 },
+          "total": { "type": "integer", "example": 23 },
+          "totalPages": { "type": "integer", "example": 5 }
+        }
+      },
+      "PaginatedPetsResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/definitions/Pet" }
+          },
+          "pagination": { "$ref": "#/definitions/Pagination" }
+        }
+      },
       "Pet": {
         "type": "object",
         "properties": {
