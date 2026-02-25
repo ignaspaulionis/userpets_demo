@@ -33,4 +33,4 @@ User.prototype.validatePassword = async function (password) {
   return bcrypt.compare(password, this.password);
 };
 
-module.exports = User;
+module.exports = { User };

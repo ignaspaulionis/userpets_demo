@@ -9,7 +9,7 @@ const petsRouter = require('./routes/pets');
 const userRouter = require('./routes/user');
 const tagsRouter = require('./routes/tags');
 
-const User = require('./models/user');
+const { User } = require('./models/user');
 const { Pet } = require('./models/pet');
 const { Tag } = require('./models/tag');
 

@@ -1,6 +1,6 @@
 const express = require('express');
 const jwt = require('jwt-simple');
-const User = require('../models/user');
+const { User } = require('../models/user');
 const { Pet } = require('../models/pet');
 const { authMiddleware } = require('../middleware/auth');
 
@@ -52,7 +52,16 @@ router.get('/:id/pets', async (req, res) => {
     }
 
     const pets = await Pet.findAll({ where: { userId: Number(id) } });
-    res.json(pets);
+    res.json(
+      pets.map((pet) => {
+        const plain = pet.toJSON();
+        return {
+          ...plain,
+          userId: plain.userId ?? null,
+          fullname: user.fullname,
+        };
+      })
+    );
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -133,28 +142,5 @@ router.get('/user-stats', async (req, res) => {
   }
 });
 
-// Delete User
-router.delete('/:id', authMiddleware, async (req, res) => {
-  try {
-    const userId = Number(req.params.id);
-    if (!isValidId(userId)) {
-      return res.status(400).json({ error: 'Invalid user id' });
-    }
-
-    if (req.user.id !== userId && !req.user.issuperadmin) {
-      return res.status(403).json({ error: 'Access denied' });
-    }
-
-    const user = await User.findByPk(userId);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    await user.destroy();
-    res.status(204).end();
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
 
 module.exports = router;
