@@ -1,14 +1,19 @@
 const { Sequelize } = require('sequelize');
 
-// Use SQLite for the database
+const isTest = process.env.NODE_ENV === 'test';
+
+// Use in-memory SQLite for tests, file-based for development/production
 const sequelize = new Sequelize({
   dialect: 'sqlite',
-  storage: './database.sqlite',  // SQLite file will be stored in the root of the project
+  storage: isTest ? ':memory:' : './database.sqlite',
+  logging: false,
 });
 
-sequelize
-  .authenticate()
-  .then(() => console.log('Connection has been established successfully.'))
-  .catch((err) => console.error('Unable to connect to the database:', err));
+if (!isTest) {
+  sequelize
+    .authenticate()
+    .then(() => console.log('Connection has been established successfully.'))
+    .catch((err) => console.error('Unable to connect to the database:', err));
+}
 
 module.exports = sequelize;
