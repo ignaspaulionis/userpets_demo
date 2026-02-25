@@ -28,12 +28,13 @@ router.get('/', async (req, res) => {
 
     const offset = (parsedPage - 1) * parsedLimit;
 
-    const { rows: pets, count: totalCount } = await Pet.findAndCountAll({
+    const totalCount = await Pet.count();
+
+    const pets = await Pet.findAll({
       include: Tag,
-      distinct: true,
-      col: 'Pet.id',
       limit: parsedLimit,
-      offset
+      offset,
+      order: [['id', 'ASC']]
     });
 
     const totalPages = totalCount === 0 ? 0 : Math.ceil(totalCount / parsedLimit);
