@@ -7,11 +7,41 @@ const router = express.Router();
 const isValidId = (value) => Number.isInteger(Number(value)) && Number(value) > 0;
 const isNonEmptyString = (value) => typeof value === 'string' && value.trim().length > 0;
 
-// List Pets
+// List Pets (paginated)
 router.get('/', async (req, res) => {
   try {
-    const pets = await Pet.findAll({ include: Tag });
-    res.json(pets);
+    const { page, limit } = req.query;
+
+    const hasPage = page !== undefined;
+    const hasLimit = limit !== undefined;
+
+    const parsedPage = hasPage ? Number(page) : 1;
+    const parsedLimit = hasLimit ? Number(limit) : 10;
+
+    if (!Number.isInteger(parsedPage) || parsedPage < 1) {
+      return res.status(400).json({ error: 'Page must be a positive integer' });
+    }
+
+    if (!Number.isInteger(parsedLimit) || parsedLimit < 1) {
+      return res.status(400).json({ error: 'Limit must be a positive integer' });
+    }
+
+    const offset = (parsedPage - 1) * parsedLimit;
+
+    const { rows: pets, count: totalCount } = await Pet.findAndCountAll({
+      include: Tag,
+      limit: parsedLimit,
+      offset
+    });
+
+    const totalPages = totalCount === 0 ? 0 : Math.ceil(totalCount / parsedLimit);
+
+    res.json({
+      totalCount,
+      currentPage: parsedPage,
+      totalPages,
+      pets
+    });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
