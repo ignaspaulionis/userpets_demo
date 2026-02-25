@@ -35,7 +35,7 @@ router.get('/', async (req, res) => {
       where.age = ageFilter;
     }
 
-    const pets = await Pet.findAll({ include: Tag, ...(Object.keys(where).length > 0 ? { where } : {}) });
+    const pets = await Pet.findAll({ ...(Object.keys(where).length > 0 ? { where } : {}), include: Tag });
     res.json(pets);
   } catch (err) {
     res.status(400).json({ error: err.message });
