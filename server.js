@@ -46,6 +46,14 @@ app.use('/pets', petsRouter);
 app.use('/users', userRouter);
 app.use('/tags', tagsRouter);
 
+// Public health check endpoint
+app.get('/api/health', (req, res) => {
+  return res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // Initialize database and sync models
 sequelize.sync({ force: true })  // Cleans the DB on every load
   .then(() => console.log('Database synced'));

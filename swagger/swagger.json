@@ -107,6 +107,30 @@
             }
           }
         }
+      },
+      "/api/health": {
+        "get": {
+          "summary": "Health check",
+          "responses": {
+            "200": {
+              "description": "Service health status",
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "example": "ok"
+                  },
+                  "timestamp": {
+                    "type": "string",
+                    "format": "date-time",
+                    "example": "2026-02-24T10:30:00.000Z"
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "definitions": {
