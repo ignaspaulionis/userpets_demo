@@ -10,7 +10,14 @@ const isNonEmptyString = (value) => typeof value === 'string' && value.trim().le
 // List Pets
 router.get('/', async (req, res) => {
   try {
-    const pets = await Pet.findAll({ include: Tag });
+    const options = { include: Tag };
+    const type = typeof req.query.type === 'string' ? req.query.type.trim() : '';
+
+    if (type) {
+      options.where = { type: type.toLowerCase() };
+    }
+
+    const pets = await Pet.findAll(options);
     res.json(pets);
   } catch (err) {
     res.status(400).json({ error: err.message });
