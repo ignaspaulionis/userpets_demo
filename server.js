@@ -51,6 +51,17 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Not found' });
 });
 
+// Centralized JSON error handler (including malformed JSON payloads)
+app.use((err, req, res, next) => {
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    return res.status(400).json({ error: 'Invalid JSON payload' });
+  }
+
+  return res.status(err.status || 500).json({
+    error: err.message || 'Internal server error',
+  });
+});
+
 // Initialize database and sync models
 sequelize.sync({ force: true })  // Cleans the DB on every load
   .then(() => console.log('Database synced'));
