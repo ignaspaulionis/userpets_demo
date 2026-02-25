@@ -13,9 +13,25 @@ const secretKey = 'your_secret_key';
 router.post('/register', async (req, res) => {
   try {
     const { email, password, fullname } = req.body;
-    const newUser = await User.create({ email, password, fullname });
+    const normalizedEmail = typeof email === 'string' ? email.trim() : '';
+    const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
+
+    if (!isValidEmail) {
+      return res.status(400).json({ error: 'Invalid email format' });
+    }
+
+    await User.create({ email: normalizedEmail, password, fullname });
     res.status(201).json({ message: 'User registered successfully!' });
   } catch (err) {
+    if (err.name === 'SequelizeValidationError' || err.name === 'SequelizeUniqueConstraintError') {
+      const hasEmailFormatIssue = Array.isArray(err.errors)
+        && err.errors.some((error) => error.path === 'email' && error.validatorKey === 'isEmail');
+
+      if (hasEmailFormatIssue) {
+        return res.status(400).json({ error: 'Invalid email format' });
+      }
+    }
+
     res.status(400).json({ error: err.message });
   }
 });
