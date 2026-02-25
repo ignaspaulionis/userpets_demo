@@ -30,6 +30,8 @@ router.get('/', async (req, res) => {
 
     const { rows: pets, count: totalCount } = await Pet.findAndCountAll({
       include: Tag,
+      distinct: true,
+      col: 'Pet.id',
       limit: parsedLimit,
       offset
     });
