@@ -63,14 +63,15 @@ router.post('/', async (req, res) => {
     // Validate optional userId
     let resolvedUserId = null;
     if (userId !== undefined && userId !== null) {
-      if (!Number.isInteger(userId) || userId <= 0) {
+      const normalizedUserId = Number(userId);
+      if (!Number.isInteger(normalizedUserId) || normalizedUserId <= 0) {
         return res.status(400).json({ error: 'userId must be a positive integer' });
       }
-      const user = await User.findByPk(userId);
+      const user = await User.findByPk(normalizedUserId);
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
-      resolvedUserId = userId;
+      resolvedUserId = normalizedUserId;
     }
     
     const newPet = await Pet.create({ name, type: type.toLowerCase(), age, userId: resolvedUserId });

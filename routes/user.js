@@ -38,6 +38,15 @@ router.post('/login', async (req, res) => {
   }
 });
 
+router.get('/user-stats', async (req, res) => {
+  try {
+    const users = await User.findAll({ attributes: ['id', 'email', 'issuperadmin'] });
+    return res.json(users);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 // Get all pets for a user (must be before generic /:id routes)
 router.get('/:id/pets', async (req, res) => {
   try {
@@ -127,15 +136,6 @@ router.patch('/:id', authMiddleware, async (req, res) => {
 router.get('/', authMiddleware, async (req, res) => {
   try {
     const users = await User.findAll({ attributes: ['id', 'fullname', 'email', 'issuperadmin'] });
-    return res.json(users);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
-
-router.get('/user-stats', async (req, res) => {
-  try {
-    const users = await User.findAll({ attributes: ['id', 'email', 'issuperadmin'] });
     return res.json(users);
   } catch (err) {
     res.status(400).json({ error: err.message });
