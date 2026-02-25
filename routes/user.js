@@ -61,14 +61,18 @@ router.get('/:id/pets', async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const pets = await Pet.findAll({ where: { userId: Number(id) } });
+    const pets = await Pet.findAll({
+      where: { userId: Number(id) },
+      include: [{ model: User, as: 'owner', attributes: ['fullname'], required: false }],
+    });
     res.json(
       pets.map((pet) => {
         const plain = pet.toJSON();
+        const { owner, ...petData } = plain;
         return {
-          ...plain,
-          userId: plain.userId ?? null,
-          fullname: user.fullname,
+          ...petData,
+          userId: petData.userId ?? null,
+          fullname: owner ? owner.fullname : null,
         };
       })
     );
