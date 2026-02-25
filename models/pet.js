@@ -24,8 +24,6 @@ const Pet = sequelize.define('Pet', {
     },
     onDelete: 'SET NULL',
   },
-}, {
-  timestamps: true,
 });
 
 module.exports = { Pet };

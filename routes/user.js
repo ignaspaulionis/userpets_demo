@@ -1,6 +1,6 @@
 const express = require('express');
 const jwt = require('jwt-simple');
-const { User } = require('../models/user');
+const User = require('../models/user');
 const { Pet } = require('../models/pet');
 const { authMiddleware } = require('../middleware/auth');
 

@@ -1,7 +1,7 @@
 const express = require('express');
 const { Pet } = require('../models/pet');  // Import the Pet model
 const { Tag } = require('../models/tag');
-const { User } = require('../models/user');
+const User = require('../models/user');
 
 const router = express.Router();
 
@@ -28,7 +28,7 @@ router.get('/', async (req, res) => {
         {
           model: User,
           as: 'owner',
-          attributes: ['id', 'fullname'],
+          attributes: ['fullname'],
           required: false,
         },
       ],
@@ -78,7 +78,7 @@ router.post('/', async (req, res) => {
     const petWithOwner = await Pet.findByPk(newPet.id, {
       include: [
         Tag,
-        { model: User, as: 'owner', attributes: ['id', 'fullname'], required: false },
+        { model: User, as: 'owner', attributes: ['fullname'], required: false },
       ],
     });
     res.status(201).json(serializePetWithOwner(petWithOwner));
