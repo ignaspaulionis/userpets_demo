@@ -126,6 +126,9 @@
           },
           "age": {
             "type": "integer",
+            "minimum": 0,
+            "maximum": 30,
+            "description": "Age must be a non-negative integer between 0 and 30",
             "example": 3
           }
         }
