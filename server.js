@@ -43,9 +43,19 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Routes
 app.use('/pets', petsRouter);
+app.use('/api/pets', petsRouter);
 app.use('/users', userRouter);
 app.use('/tags', tagsRouter);
 app.use('/api/tags', tagsRouter);
+
+app.use((req, res) => res.status(404).json({ error: 'Not found' }));
+
+app.use((err, req, res, next) => {
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    return res.status(400).json({ error: 'Malformed JSON' });
+  }
+  return next(err);
+});
 
 // Initialize database and sync models
 sequelize.sync({ force: true })  // Cleans the DB on every load
