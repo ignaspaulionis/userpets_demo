@@ -9,8 +9,37 @@
       font-family: Arial, sans-serif;
       margin: 20px;
     }
+    .menu {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 20px;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #f8f8f8;
+    }
+    .menu a,
+    .menu button {
+      color: #1f4ea3;
+      text-decoration: none;
+      background: transparent;
+      border: none;
+      padding: 6px 8px;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .menu a:hover,
+    .menu a:focus,
+    .menu button:hover,
+    .menu button:focus {
+      background: #e8eefc;
+      outline: none;
+    }
     .container {
-      margin-top: 50px;
+      margin-top: 20px;
       text-align: center;
     }
     .info {
@@ -24,6 +53,15 @@
   </style>
 </head>
 <body>
+  <nav class="menu" aria-label="Dashboard navigation">
+    <a href="/dashboard.html">Dashboard</a>
+    <a href="/api-docs">API Docs</a>
+    <a href="/pets">Pets</a>
+    <a href="/users">Users</a>
+    <a href="/tags">Tags</a>
+    <button type="button" id="logout-btn">Logout</button>
+  </nav>
+
   <div class="container">
     <h1>User Information</h1>
     <div id="user-info" class="info">Loading...</div>
@@ -71,6 +109,15 @@
         document.getElementById('user-info').innerText = 'Error fetching user info';
         console.error('Error fetching user info:', error);
       }
+    }
+
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', () => {
+        localStorage.removeItem('token');
+        sessionStorage.removeItem('token');
+        window.location.href = '/dashboard.html';
+      });
     }
 
     // Refresh the page content every 5 seconds
