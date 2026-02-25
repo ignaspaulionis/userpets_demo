@@ -29,6 +29,14 @@ Tag.belongsToMany(Pet, {
 const app = express();
 app.use(express.json());
 
+// Normalize malformed JSON body parser errors to API JSON responses
+app.use((err, req, res, next) => {
+  if (err && (err.type === 'entity.parse.failed' || err instanceof SyntaxError)) {
+    return res.status(400).json({ error: 'Malformed JSON request body' });
+  }
+
+  return next(err);
+});
 
 // Serve the index.html page at the root URL
 app.use(express.static(path.join(__dirname, 'public'))); // Adjust the folder name if necessary
