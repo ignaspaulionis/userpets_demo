@@ -26,6 +26,11 @@ Tag.belongsToMany(Pet, {
   onDelete: 'CASCADE',
 });
 
+// User-Pet association: a pet can optionally belong to a user
+// Deleting a user sets the pet's userId to null (no cascade delete)
+Pet.belongsTo(User, { foreignKey: 'userId', as: 'owner', onDelete: 'SET NULL' });
+User.hasMany(Pet, { foreignKey: 'userId', as: 'pets', onDelete: 'SET NULL' });
+
 const app = express();
 app.use(express.json());
 

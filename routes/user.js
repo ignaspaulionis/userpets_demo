@@ -2,6 +2,7 @@ const express = require('express');
 const jwt = require('jwt-simple');
 const bcrypt = require('bcryptjs');
 const User = require('../models/user');
+const { Pet } = require('../models/pet');
 const { authMiddleware, isSuperadminMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
@@ -105,5 +106,44 @@ router.get('/user-stats', async (req, res) => {
     }
   });
 
+
+// Delete User
+router.delete('/:id', authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!Number.isInteger(Number(id)) || Number(id) <= 0) {
+      return res.status(400).json({ error: 'Invalid user id' });
+    }
+    if (req.user.id !== parseInt(id) && !req.user.issuperadmin) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    await user.destroy();
+    res.status(204).end();
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Get all pets for a user
+router.get('/:id/pets', async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!Number.isInteger(Number(id)) || Number(id) <= 0) {
+      return res.status(400).json({ error: 'Invalid user id' });
+    }
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    const pets = await Pet.findAll({ where: { userId: id } });
+    res.json(pets);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
 
 module.exports = router;

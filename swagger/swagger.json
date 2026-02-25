@@ -10,11 +10,11 @@
           "summary": "Get a list of pets",
           "responses": {
             "200": {
-              "description": "A list of pets",
+              "description": "A list of pets with owner info",
               "schema": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/definitions/Pet"
+                  "$ref": "#/definitions/PetWithOwner"
                 }
               }
             }
@@ -28,13 +28,22 @@
               "name": "pet",
               "description": "Pet to be added",
               "schema": {
-                "$ref": "#/definitions/Pet"
+                "$ref": "#/definitions/PetInput"
               }
             }
           ],
           "responses": {
             "201": {
-              "description": "Pet added successfully"
+              "description": "Pet added successfully",
+              "schema": {
+                "$ref": "#/definitions/PetWithOwner"
+              }
+            },
+            "400": {
+              "description": "Validation error"
+            },
+            "404": {
+              "description": "User not found (when userId is provided)"
             }
           }
         }
@@ -55,7 +64,7 @@
               "name": "pet",
               "description": "Pet data to update",
               "schema": {
-                "$ref": "#/definitions/Pet"
+                "$ref": "#/definitions/PetInput"
               }
             }
           ],
@@ -80,7 +89,7 @@
               "name": "pet",
               "description": "Pet data to partially update",
               "schema": {
-                "$ref": "#/definitions/Pet"
+                "$ref": "#/definitions/PetInput"
               }
             }
           ],
@@ -107,6 +116,37 @@
             }
           }
         }
+      },
+      "/users/{id}/pets": {
+        "get": {
+          "summary": "Get all pets for a user",
+          "parameters": [
+            {
+              "in": "path",
+              "name": "id",
+              "required": true,
+              "type": "integer",
+              "description": "User ID"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "List of pets belonging to the user",
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/Pet"
+                }
+              }
+            },
+            "400": {
+              "description": "Invalid user id"
+            },
+            "404": {
+              "description": "User not found"
+            }
+          }
+        }
       }
     },
     "definitions": {
@@ -122,14 +162,66 @@
           },
           "type": {
             "type": "string",
-            "example": "Dog"
+            "example": "dog",
+            "enum": ["dog", "cat", "bird", "fish", "hamster"]
           },
           "age": {
             "type": "integer",
             "example": 3
+          },
+          "userId": {
+            "type": "integer",
+            "description": "Foreign key to the owner user (nullable)",
+            "example": 1
           }
         }
+      },
+      "PetInput": {
+        "type": "object",
+        "required": ["name", "type", "age"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Bella"
+          },
+          "type": {
+            "type": "string",
+            "example": "dog",
+            "enum": ["dog", "cat", "bird", "fish", "hamster"]
+          },
+          "age": {
+            "type": "integer",
+            "example": 3
+          },
+          "userId": {
+            "type": "integer",
+            "description": "Optional owner user ID",
+            "example": 1
+          }
+        }
+      },
+      "PetWithOwner": {
+        "allOf": [
+          { "$ref": "#/definitions/Pet" },
+          {
+            "type": "object",
+            "properties": {
+              "owner": {
+                "type": "object",
+                "description": "Owner info (null if pet has no owner)",
+                "properties": {
+                  "id": {
+                    "type": "integer"
+                  },
+                  "fullname": {
+                    "type": "string",
+                    "example": "John Doe"
+                  }
+                }
+              }
+            }
+          }
+        ]
       }
     }
   }
-  

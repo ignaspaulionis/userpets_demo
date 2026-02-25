@@ -15,6 +15,17 @@ const Pet = sequelize.define('Pet', {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
+  userId: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: 'Users',
+      key: 'id',
+    },
+    onDelete: 'SET NULL',
+  },
+}, {
+  timestamps: true,
 });
 
 module.exports = { Pet };
