@@ -1,4 +1,5 @@
 const express = require('express');
+const { Sequelize } = require('sequelize');
 const { Pet } = require('../models/pet');  // Import the Pet model
 const { Tag } = require('../models/tag');
 
@@ -14,7 +15,11 @@ router.get('/', async (req, res) => {
     const type = typeof req.query.type === 'string' ? req.query.type.trim() : '';
 
     if (type) {
-      options.where = { type: type.toLowerCase() };
+      const normalizedType = type.toLowerCase();
+      options.where = Sequelize.where(
+        Sequelize.fn('lower', Sequelize.col('type')),
+        normalizedType
+      );
     }
 
     const pets = await Pet.findAll(options);
