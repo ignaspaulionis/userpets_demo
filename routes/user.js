@@ -132,7 +132,10 @@ router.get('/user-stats', async (req, res) => {
 
 
 // Delete User
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authMiddleware, async (req, res) => {
+  if (req.user.id !== parseInt(req.params.id, 10) router.delete('/:id', async (req, res) => {router.delete('/:id', async (req, res) => { !req.user.issuperadmin) {
+    return res.status(403).json({ error: 'Access denied' });
+  }
   try {
     const { id } = req.params;
     if (!Number.isInteger(Number(id)) || Number(id) <= 0) {
