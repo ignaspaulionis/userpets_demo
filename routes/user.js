@@ -133,7 +133,7 @@ router.patch('/:id', authMiddleware, async (req, res) => {
 });
 
 // Get All Users
-router.get('/', async (req, res) => {
+router.get('/', authMiddleware, async (req, res) => {
   try {
     const users = await User.findAll({ attributes: ['id', 'fullname', 'email', 'issuperadmin'] });
     return res.json(users);
@@ -143,7 +143,7 @@ router.get('/', async (req, res) => {
 });
 
 // Delete User
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     if (!isValidId(id)) {
@@ -153,6 +153,10 @@ router.delete('/:id', async (req, res) => {
     const user = await User.findByPk(id);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (req.user.id !== Number(id) && !req.user.issuperadmin) {
+      return res.status(403).json({ error: 'Access denied' });
     }
 
     await user.destroy();
