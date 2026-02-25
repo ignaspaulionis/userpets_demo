@@ -8,6 +8,15 @@ const router = express.Router();
 const isValidId = (value) => Number.isInteger(Number(value)) && Number(value) > 0;
 const isNonEmptyString = (value) => typeof value === 'string' && value.trim().length > 0;
 
+const serializePetWithOwner = (pet) => {
+  const plainPet = pet.toJSON();
+  return {
+    ...plainPet,
+    fullname: plainPet.owner ? plainPet.owner.fullname : null,
+    owner: undefined,
+  };
+};
+
 // List Pets
 router.get('/', async (req, res) => {
   try {
@@ -22,7 +31,7 @@ router.get('/', async (req, res) => {
         },
       ],
     });
-    res.json(pets);
+    res.json(pets.map(serializePetWithOwner));
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -69,7 +78,7 @@ router.post('/', async (req, res) => {
         { model: User, as: 'owner', attributes: ['id', 'fullname'], required: false },
       ],
     });
-    res.status(201).json(petWithOwner);
+    res.status(201).json(serializePetWithOwner(petWithOwner));
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

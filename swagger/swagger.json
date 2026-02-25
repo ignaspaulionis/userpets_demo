@@ -206,18 +206,11 @@
           {
             "type": "object",
             "properties": {
-              "owner": {
-                "type": "object",
-                "description": "Owner info (null if pet has no owner)",
-                "properties": {
-                  "id": {
-                    "type": "integer"
-                  },
-                  "fullname": {
-                    "type": "string",
-                    "example": "John Doe"
-                  }
-                }
+              "fullname": {
+                "type": "string",
+                "nullable": true,
+                "description": "Owner full name (null if pet has no owner)",
+                "example": "John Doe"
               }
             }
           }
