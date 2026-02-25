@@ -1,20 +1,19 @@
 const express = require('express');
 const jwt = require('jwt-simple');
-const bcrypt = require('bcryptjs');
 const User = require('../models/user');
 const { Pet } = require('../models/pet');
-const { authMiddleware, isSuperadminMiddleware } = require('../middleware/auth');
+const { authMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
 const secretKey = 'your_secret_key';
 
-
+const isValidId = (value) => Number.isInteger(Number(value)) && Number(value) > 0;
 
 // Register
 router.post('/register', async (req, res) => {
   try {
     const { email, password, fullname } = req.body;
-    const newUser = await User.create({ email, password, fullname });
+    await User.create({ email, password, fullname });
     res.status(201).json({ message: 'User registered successfully!' });
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -39,26 +38,21 @@ router.post('/login', async (req, res) => {
   }
 });
 
-
-// Get all pets for a user
+// Get all pets for a user (must be before generic /:id routes)
 router.get('/:id/pets', async (req, res) => {
   try {
     const { id } = req.params;
-    const userId = Number(id);
-    if (!Number.isInteger(userId) || userId <= 0) {
+    if (!isValidId(id)) {
       return res.status(400).json({ error: 'Invalid user id' });
     }
-    const user = await User.findByPk(userId);
+
+    const user = await User.findByPk(id);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    const pets = await Pet.findAll({ where: { userId } });
-    const normalizedPets = pets.map((pet) => ({
-      ...pet.toJSON(),
-      userId: pet.userId ?? null,
-      fullname: user.fullname,
-    }));
-    res.json(normalizedPets);
+
+    const pets = await Pet.findAll({ where: { userId: Number(id) } });
+    res.json(pets);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -67,16 +61,21 @@ router.get('/:id/pets', async (req, res) => {
 // Update User (PUT)
 router.put('/:id', authMiddleware, async (req, res) => {
   try {
-    const { email, fullname } = req.body;
-    if (req.user.id !== parseInt(req.params.id) && !req.user.issuperadmin) {
+    const userId = Number(req.params.id);
+    if (!isValidId(userId)) {
+      return res.status(400).json({ error: 'Invalid user id' });
+    }
+
+    if (req.user.id !== userId && !req.user.issuperadmin) {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    const user = await User.findByPk(req.params.id);
+    const { email, fullname } = req.body;
+    const user = await User.findByPk(userId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     user.email = email || user.email;
-    user.fullname = fullname;
+    user.fullname = fullname || user.fullname;
 
     await user.save();
     res.json({ message: 'User updated successfully', user });
@@ -88,18 +87,26 @@ router.put('/:id', authMiddleware, async (req, res) => {
 // Partially Update User (PATCH)
 router.patch('/:id', authMiddleware, async (req, res) => {
   try {
-    const { issuperadmin, email, fullname } = req.body;
+    const userId = Number(req.params.id);
+    if (!isValidId(userId)) {
+      return res.status(400).json({ error: 'Invalid user id' });
+    }
 
-    const user = await User.findByPk(req.params.id);
+    if (req.user.id !== userId && !req.user.issuperadmin) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const { issuperadmin, email, fullname } = req.body;
+    const user = await User.findByPk(userId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     user.email = email || user.email;
-    user.fullname = fullname;
+    user.fullname = fullname || user.fullname;
 
     if (typeof issuperadmin !== 'undefined') {
       user.issuperadmin = issuperadmin;
     }
-    
+
     await user.save();
     res.json({ message: 'User updated successfully', user });
   } catch (err) {
@@ -107,44 +114,42 @@ router.patch('/:id', authMiddleware, async (req, res) => {
   }
 });
 
-// Get All Users (Superadmin Only)
+// Get All Users
 router.get('/', authMiddleware, async (req, res) => {
-    try {
-
-      const users = await User.findAll({ attributes: ['id', 'fullname', 'email', 'issuperadmin'] });
-      return res.json(users);
-
-    } catch (err) {
-      res.status(400).json({ error: err.message });
-    }
-  });
+  try {
+    const users = await User.findAll({ attributes: ['id', 'fullname', 'email', 'issuperadmin'] });
+    return res.json(users);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
 
 router.get('/user-stats', async (req, res) => {
-    try {
-
-      const users = await User.findAll({ attributes: ['id', 'email', 'issuperadmin'] });
-      return res.json(users);
-
-    } catch (err) {
-      res.status(400).json({ error: err.message });
-    }
-  });
-
+  try {
+    const users = await User.findAll({ attributes: ['id', 'email', 'issuperadmin'] });
+    return res.json(users);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
 
 // Delete User
 router.delete('/:id', authMiddleware, async (req, res) => {
-  if (req.user.id !== parseInt(req.params.id, 10) router.delete('/:id', async (req, res) => {router.delete('/:id', async (req, res) => { !req.user.issuperadmin) {
-    return res.status(403).json({ error: 'Access denied' });
-  }
   try {
-    const { id } = req.params;
-    if (!Number.isInteger(Number(id)) || Number(id) <= 0) {
+    const userId = Number(req.params.id);
+    if (!isValidId(userId)) {
       return res.status(400).json({ error: 'Invalid user id' });
     }
-    const user = await User.findByPk(id);
+
+    if (req.user.id !== userId && !req.user.issuperadmin) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const user = await User.findByPk(userId);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
+
     await user.destroy();
     res.status(204).end();
   } catch (err) {
