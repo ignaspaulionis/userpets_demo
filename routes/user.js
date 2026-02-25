@@ -44,15 +44,21 @@ router.post('/login', async (req, res) => {
 router.get('/:id/pets', async (req, res) => {
   try {
     const { id } = req.params;
-    if (!Number.isInteger(Number(id)) || Number(id) <= 0) {
+    const userId = Number(id);
+    if (!Number.isInteger(userId) || userId <= 0) {
       return res.status(400).json({ error: 'Invalid user id' });
     }
-    const user = await User.findByPk(id);
+    const user = await User.findByPk(userId);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    const pets = await Pet.findAll({ where: { userId: id } });
-    res.json(pets);
+    const pets = await Pet.findAll({ where: { userId } });
+    const normalizedPets = pets.map((pet) => ({
+      ...pet.toJSON(),
+      userId: pet.userId ?? null,
+      fullname: user.fullname,
+    }));
+    res.json(normalizedPets);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

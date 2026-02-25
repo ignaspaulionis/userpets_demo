@@ -10,10 +10,12 @@ const isNonEmptyString = (value) => typeof value === 'string' && value.trim().le
 
 const serializePetWithOwner = (pet) => {
   const plainPet = pet.toJSON();
+  const { owner, ...petData } = plainPet;
+
   return {
-    ...plainPet,
-    fullname: plainPet.owner ? plainPet.owner.fullname : null,
-    owner: undefined,
+    ...petData,
+    userId: petData.userId ?? null,
+    fullname: owner ? owner.fullname : null,
   };
 };
 
