@@ -5,6 +5,19 @@
       "version": "1.0.0"
     },
     "paths": {
+      "/api/pets/types": {
+        "get": {
+          "summary": "Get allowed pet types",
+          "responses": {
+            "200": {
+              "description": "Allowed pet types",
+              "schema": {
+                "$ref": "#/definitions/PetTypesResponse"
+              }
+            }
+          }
+        }
+      },
       "/pets": {
         "get": {
           "summary": "Get a list of pets",
@@ -110,6 +123,19 @@
       }
     },
     "definitions": {
+      "PetTypesResponse": {
+        "type": "object",
+        "properties": {
+          "types": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["dog", "cat", "bird", "fish", "hamster"]
+            },
+            "example": ["dog", "cat", "bird", "fish", "hamster"]
+          }
+        }
+      },
       "Pet": {
         "type": "object",
         "properties": {
