@@ -26,6 +26,18 @@ describe('Users API', () => {
     expect(res.body).toHaveProperty('error');
   });
 
+  it('rejects register payload using fullName instead of fullname', async () => {
+    const res = await request(app).post('/users/register').send({
+      email: 'alias@example.com',
+      password: 'password123',
+      fullName: 'Alias User',
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.type).toMatch(/json/);
+    expect(res.body).toHaveProperty('error');
+  });
+
   it('logs in valid user and returns token', async () => {
     await registerUser();
     const res = await request(app).post('/users/login').send({
