@@ -1,135 +1,194 @@
 {
-    "swagger": "2.0",
-    "info": {
-      "title": "Pets API",
-      "version": "1.0.0"
-    },
-    "paths": {
-      "/pets": {
-        "get": {
-          "summary": "Get a list of pets",
-          "responses": {
-            "200": {
-              "description": "A list of pets",
-              "schema": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/definitions/Pet"
-                }
-              }
-            }
-          }
-        },
-        "post": {
-          "summary": "Add a new pet",
-          "parameters": [
-            {
-              "in": "body",
-              "name": "pet",
-              "description": "Pet to be added",
-              "schema": {
+  "swagger": "2.0",
+  "info": {
+    "title": "Pets API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/pets": {
+      "get": {
+        "summary": "Get a list of pets",
+        "responses": {
+          "200": {
+            "description": "A list of pets",
+            "schema": {
+              "type": "array",
+              "items": {
                 "$ref": "#/definitions/Pet"
               }
-            }
-          ],
-          "responses": {
-            "201": {
-              "description": "Pet added successfully"
             }
           }
         }
       },
-      "/pets/{id}": {
-        "put": {
-          "summary": "Update a pet",
-          "parameters": [
-            {
-              "in": "path",
-              "name": "id",
-              "required": true,
-              "type": "integer",
-              "description": "Pet ID"
-            },
-            {
-              "in": "body",
-              "name": "pet",
-              "description": "Pet data to update",
-              "schema": {
-                "$ref": "#/definitions/Pet"
+      "post": {
+        "summary": "Add a new pet",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "pet",
+            "description": "Pet to be added",
+            "schema": {
+              "type": "object",
+              "required": ["name", "type", "age"],
+              "properties": {
+                "name": { "type": "string", "example": "Bella" },
+                "type": { "type": "string", "example": "dog" },
+                "age": { "type": "integer", "example": 3 }
               }
             }
-          ],
-          "responses": {
-            "200": {
-              "description": "Pet updated successfully"
-            }
           }
-        },
-        "patch": {
-          "summary": "Partially update a pet",
-          "parameters": [
-            {
-              "in": "path",
-              "name": "id",
-              "required": true,
-              "type": "integer",
-              "description": "Pet ID"
-            },
-            {
-              "in": "body",
-              "name": "pet",
-              "description": "Pet data to partially update",
-              "schema": {
-                "$ref": "#/definitions/Pet"
-              }
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Pet partially updated successfully"
-            }
-          }
-        },
-        "delete": {
-          "summary": "Delete a pet",
-          "parameters": [
-            {
-              "in": "path",
-              "name": "id",
-              "required": true,
-              "type": "integer",
-              "description": "Pet ID"
-            }
-          ],
-          "responses": {
-            "204": {
-              "description": "Pet deleted successfully"
+        ],
+        "responses": {
+          "201": {
+            "description": "Pet added successfully"
+          },
+          "400": {
+            "description": "Missing or invalid required fields",
+            "schema": {
+              "$ref": "#/definitions/MissingFieldsError"
             }
           }
         }
       }
     },
-    "definitions": {
-      "Pet": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer"
-          },
-          "name": {
-            "type": "string",
-            "example": "Bella"
-          },
-          "type": {
-            "type": "string",
-            "example": "Dog"
-          },
-          "age": {
+    "/pets/{id}": {
+      "put": {
+        "summary": "Update a pet",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
             "type": "integer",
-            "example": 3
+            "description": "Pet ID"
+          },
+          {
+            "in": "body",
+            "name": "pet",
+            "description": "Pet data to update",
+            "schema": {
+              "$ref": "#/definitions/Pet"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pet updated successfully"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Partially update a pet",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "type": "integer",
+            "description": "Pet ID"
+          },
+          {
+            "in": "body",
+            "name": "pet",
+            "description": "Pet data to partially update",
+            "schema": {
+              "$ref": "#/definitions/Pet"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pet partially updated successfully"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a pet",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "type": "integer",
+            "description": "Pet ID"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Pet deleted successfully"
+          }
+        }
+      }
+    },
+    "/users/register": {
+      "post": {
+        "summary": "Register a user",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "user",
+            "description": "User registration payload",
+            "schema": {
+              "type": "object",
+              "required": ["email", "password", "fullname"],
+              "properties": {
+                "email": { "type": "string", "example": "a@b.com" },
+                "password": { "type": "string", "example": "123456" },
+                "fullname": { "type": "string", "example": "Alice Doe" }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "User registered successfully"
+          },
+          "400": {
+            "description": "Missing required fields",
+            "schema": {
+              "$ref": "#/definitions/MissingFieldsError"
+            }
           }
         }
       }
     }
+  },
+  "definitions": {
+    "Pet": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string",
+          "example": "Bella"
+        },
+        "type": {
+          "type": "string",
+          "example": "Dog"
+        },
+        "age": {
+          "type": "integer",
+          "example": 3
+        }
+      }
+    },
+    "MissingFieldsError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string",
+          "example": "Missing required fields"
+        },
+        "missing": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "example": ["name", "type"]
+        }
+      }
+    }
   }
-  
+}

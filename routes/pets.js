@@ -21,24 +21,35 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { name, type, age } = req.body;
-    
+
+    const missing = [];
+    if (!isNonEmptyString(name)) missing.push('name');
+    if (!isNonEmptyString(type)) missing.push('type');
+
+    if (missing.length > 0) {
+      return res.status(400).json({ error: 'Missing required fields', missing });
+    }
+
+    const trimmedName = name.trim();
+    const trimmedType = type.trim().toLowerCase();
+
     // Validate name
-    if (!name || typeof name !== 'string' || name.length < 2 || name.length > 50) {
+    if (trimmedName.length < 2 || trimmedName.length > 50) {
       return res.status(400).json({ error: "Name must be between 2 and 50 characters" });
     }
-    
+
     // Validate age
     if (age === undefined || age === null || !Number.isInteger(age) || age < 0 || age > 30) {
       return res.status(400).json({ error: "Age must be an integer between 0 and 30" });
     }
-    
+
     // Validate type
     const validTypes = ['dog', 'cat', 'bird', 'fish', 'hamster'];
-    if (!type || typeof type !== 'string' || !validTypes.includes(type.toLowerCase())) {
+    if (!validTypes.includes(trimmedType)) {
       return res.status(400).json({ error: "Type must be one of: dog, cat, bird, fish, hamster" });
     }
-    
-    const newPet = await Pet.create({ name, type: type.toLowerCase(), age });
+
+    const newPet = await Pet.create({ name: trimmedName, type: trimmedType, age });
     res.status(201).json(newPet);
   } catch (err) {
     res.status(400).json({ error: err.message });

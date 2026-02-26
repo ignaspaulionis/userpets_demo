@@ -13,8 +13,23 @@ const secretKey = 'your_secret_key';
 router.post('/register', async (req, res) => {
   try {
     const { email, password, fullname } = req.body;
-    const newUser = await User.create({ email, password, fullname });
-    res.status(201).json({ message: 'User registered successfully!' });
+
+    const missing = [];
+    if (typeof email !== 'string' || email.trim().length === 0) missing.push('email');
+    if (typeof password !== 'string' || password.trim().length === 0) missing.push('password');
+    if (typeof fullname !== 'string' || fullname.trim().length === 0) missing.push('fullname');
+
+    if (missing.length > 0) {
+      return res.status(400).json({ error: 'Missing required fields', missing });
+    }
+
+    const newUser = await User.create({
+      email: email.trim(),
+      password,
+      fullname: fullname.trim(),
+    });
+
+    res.status(201).json({ message: 'User registered successfully!', id: newUser.id });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
