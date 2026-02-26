@@ -6,7 +6,17 @@ const { Tag } = require('../models/tag');
 const router = express.Router();
 
 const isValidId = (value) => Number.isInteger(Number(value)) && Number(value) > 0;
-const isNonEmptyString = (value) => typeof value === 'string' && value.trim().length > 0;
+
+const serializePetWithOwner = (pet) => {
+  const petJson = pet.toJSON();
+  const { owner, ...rest } = petJson;
+
+  return {
+    ...rest,
+    userId: owner ? owner.id : rest.userId,
+    fullname: owner ? owner.fullname : null,
+  };
+};
 
 // List Pets
 router.get('/', async (req, res) => {
@@ -18,15 +28,7 @@ router.get('/', async (req, res) => {
       ],
     });
 
-    const serializedPets = pets.map((pet) => {
-      const petJson = pet.toJSON();
-      const { owner, ...rest } = petJson;
-      return {
-        ...rest,
-        userId: owner ? owner.id : rest.userId,
-        fullname: owner ? owner.fullname : null,
-      };
-    });
+    const serializedPets = pets.map(serializePetWithOwner);
 
     res.json(serializedPets);
   } catch (err) {

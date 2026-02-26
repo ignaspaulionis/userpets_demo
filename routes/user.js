@@ -9,6 +9,17 @@ const { authMiddleware, isSuperadminMiddleware } = require('../middleware/auth')
 const router = express.Router();
 const secretKey = 'your_secret_key';
 
+const serializePetWithOwner = (pet) => {
+  const petJson = pet.toJSON();
+  const { owner, ...rest } = petJson;
+
+  return {
+    ...rest,
+    userId: owner ? owner.id : rest.userId,
+    fullname: owner ? owner.fullname : null,
+  };
+};
+
 
 
 // Register
@@ -40,6 +51,30 @@ router.post('/login', async (req, res) => {
   }
 });
 
+
+// Delete User
+router.delete('/:id', authMiddleware, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({ error: 'Invalid user id' });
+    }
+
+    if (req.user.id !== id && !req.user.issuperadmin) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    await user.destroy();
+    return res.status(204).end();
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
+});
 
 // Update User (PUT)
 router.put('/:id', authMiddleware, async (req, res) => {
@@ -127,15 +162,7 @@ router.get('/:id/pets', async (req, res) => {
       ],
     });
 
-    const serializedPets = pets.map((pet) => {
-      const petJson = pet.toJSON();
-      const { owner, ...rest } = petJson;
-      return {
-        ...rest,
-        userId: owner ? owner.id : rest.userId,
-        fullname: owner ? owner.fullname : null,
-      };
-    });
+    const serializedPets = pets.map(serializePetWithOwner);
 
     return res.json(serializedPets);
   } catch (err) {

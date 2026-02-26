@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');  // Import the sequelize instance
+const sequelize = require('../config/db');
+const User = require('./user');
 
-// Define the Pet model
 const Pet = sequelize.define('Pet', {
   name: {
     type: DataTypes.STRING,
@@ -19,7 +19,7 @@ const Pet = sequelize.define('Pet', {
     type: DataTypes.INTEGER,
     allowNull: true,
     references: {
-      model: 'Users',
+      model: User,
       key: 'id',
     },
     onDelete: 'SET NULL',
