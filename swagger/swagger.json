@@ -8,6 +8,15 @@
       "/pets": {
         "get": {
           "summary": "Get a list of pets",
+          "parameters": [
+            {
+              "in": "query",
+              "name": "name",
+              "required": false,
+              "type": "string",
+              "description": "Optional partial pet name filter (case-insensitive)"
+            }
+          ],
           "responses": {
             "200": {
               "description": "A list of pets",
