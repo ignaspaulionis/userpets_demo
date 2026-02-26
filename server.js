@@ -6,6 +6,7 @@ const sequelize = require('./config/db');
 console.log('Requiring pets route...');
 
 const petsRouter = require('./routes/pets');
+const apiPetsRouter = require('./routes/apiPets');
 const userRouter = require('./routes/user');
 const tagsRouter = require('./routes/tags');
 
@@ -43,6 +44,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Routes
 app.use('/pets', petsRouter);
+app.use('/api/pets', apiPetsRouter);
 app.use('/users', userRouter);
 app.use('/tags', tagsRouter);
 

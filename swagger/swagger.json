@@ -39,6 +39,46 @@
           }
         }
       },
+      "/api/pets": {
+        "get": {
+          "summary": "Get a paginated list of pets",
+          "parameters": [
+            {
+              "in": "query",
+              "name": "page",
+              "required": false,
+              "type": "integer",
+              "default": 1,
+              "minimum": 1,
+              "description": "Page number"
+            },
+            {
+              "in": "query",
+              "name": "limit",
+              "required": false,
+              "type": "integer",
+              "default": 10,
+              "minimum": 1,
+              "maximum": 100,
+              "description": "Items per page (max 100)"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Paginated pets response",
+              "schema": {
+                "$ref": "#/definitions/PaginatedPetsResponse"
+              }
+            },
+            "400": {
+              "description": "Invalid pagination query params",
+              "schema": {
+                "$ref": "#/definitions/Error"
+              }
+            }
+          }
+        }
+      },
       "/pets/{id}": {
         "put": {
           "summary": "Update a pet",
@@ -127,6 +167,34 @@
           "age": {
             "type": "integer",
             "example": 3
+          }
+        }
+      },
+      "Pagination": {
+        "type": "object",
+        "properties": {
+          "page": { "type": "integer", "example": 1 },
+          "limit": { "type": "integer", "example": 10 },
+          "total": { "type": "integer", "example": 23 },
+          "totalPages": { "type": "integer", "example": 3 }
+        }
+      },
+      "PaginatedPetsResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/definitions/Pet" }
+          },
+          "pagination": { "$ref": "#/definitions/Pagination" }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "page must be a positive integer"
           }
         }
       }
