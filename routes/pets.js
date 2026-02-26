@@ -73,7 +73,14 @@ router.post('/', async (req, res) => {
     }
 
     const newPet = await Pet.create({ name, type: type.toLowerCase(), age, userId: ownerId });
-    res.status(201).json(newPet);
+    const createdPet = await Pet.findByPk(newPet.id, {
+      include: [
+        Tag,
+        { model: User, as: 'owner', attributes: ['id', 'fullname'], required: false },
+      ],
+    });
+
+    res.status(201).json(serializePetWithOwner(createdPet));
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

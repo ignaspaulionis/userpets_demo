@@ -52,6 +52,17 @@ router.post('/login', async (req, res) => {
 });
 
 
+router.get('/user-stats', async (req, res) => {
+    try {
+
+      const users = await User.findAll({ attributes: ['id', 'email', 'issuperadmin'] });
+      return res.json(users);
+
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
 router.get('/:id/pets', async (req, res) => {
   try {
     const id = Number(req.params.id);
@@ -134,44 +145,5 @@ router.get('/', authMiddleware, async (req, res) => {
       res.status(400).json({ error: err.message });
     }
   });
-
-router.get('/user-stats', async (req, res) => {
-    try {
-
-      const users = await User.findAll({ attributes: ['id', 'email', 'issuperadmin'] });
-      return res.json(users);
-
-    } catch (err) {
-      res.status(400).json({ error: err.message });
-    }
-  });
-
-router.get('/:id/pets', async (req, res) => {
-  try {
-    const id = Number(req.params.id);
-    if (!Number.isInteger(id) || id <= 0) {
-      return res.status(400).json({ error: 'Invalid user id' });
-    }
-
-    const user = await User.findByPk(id);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    const pets = await Pet.findAll({
-      where: { userId: id },
-      include: [
-        Tag,
-        { model: User, as: 'owner', attributes: ['id', 'fullname'], required: false },
-      ],
-    });
-
-    const serializedPets = pets.map(serializePetWithOwner);
-
-    return res.json(serializedPets);
-  } catch (err) {
-    return res.status(400).json({ error: err.message });
-  }
-});
 
 module.exports = router;
