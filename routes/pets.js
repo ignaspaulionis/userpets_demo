@@ -33,7 +33,7 @@ router.get('/', async (req, res) => {
 // Add Pet
 router.post('/', async (req, res) => {
   try {
-    const { name, type, age } = req.body;
+    const { name, type, age, userId } = req.body;
     
     // Validate name
     if (!name || typeof name !== 'string' || name.length < 2 || name.length > 50) {

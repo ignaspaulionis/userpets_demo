@@ -16,8 +16,9 @@ const secretKey = 'your_secret_key';
 // Register
 router.post('/register', async (req, res) => {
   try {
-    const { email, password, fullname } = req.body;
-    const newUser = await User.create({ email, password, fullname });
+    const { email, password, fullname, fullName } = req.body;
+    const resolvedFullname = fullname ?? fullName;
+    const newUser = await User.create({ email, password, fullname: resolvedFullname });
     res.status(201).json({ message: 'User registered successfully!' });
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -142,5 +143,25 @@ router.get('/user-stats', async (req, res) => {
     }
   });
 
+
+// Delete User
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!isValidId(id)) {
+      return res.status(400).json({ error: 'Invalid user id' });
+    }
+
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    await user.destroy();
+    return res.status(204).end();
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
 
 module.exports = router;
