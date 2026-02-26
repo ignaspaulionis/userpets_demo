@@ -52,16 +52,11 @@ router.post('/login', async (req, res) => {
 });
 
 
-// Delete User
-router.delete('/:id', authMiddleware, async (req, res) => {
+router.get('/:id/pets', async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (!Number.isInteger(id) || id <= 0) {
       return res.status(400).json({ error: 'Invalid user id' });
-    }
-
-    if (req.user.id !== id && !req.user.issuperadmin) {
-      return res.status(403).json({ error: 'Access denied' });
     }
 
     const user = await User.findByPk(id);
@@ -69,8 +64,17 @@ router.delete('/:id', authMiddleware, async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    await user.destroy();
-    return res.status(204).end();
+    const pets = await Pet.findAll({
+      where: { userId: id },
+      include: [
+        Tag,
+        { model: User, as: 'owner', attributes: ['id', 'fullname'], required: false },
+      ],
+    });
+
+    const serializedPets = pets.map(serializePetWithOwner);
+
+    return res.json(serializedPets);
   } catch (err) {
     return res.status(400).json({ error: err.message });
   }
