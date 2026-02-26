@@ -28,6 +28,12 @@ Tag.belongsToMany(Pet, {
 
 const app = express();
 app.use(express.json());
+app.use((err, req, res, next) => {
+  if (err && err.type === 'entity.parse.failed') {
+    return res.status(400).json({ error: 'Invalid JSON payload' });
+  }
+  return next(err);
+});
 
 // Serve the index.html page at the root URL
 app.use(express.static(path.join(__dirname, 'public'))); // Adjust the folder name if necessary
@@ -42,27 +48,10 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Routes
 app.use('/pets', petsRouter);
+app.use('/api/pets', petsRouter);
 app.use('/users', userRouter);
 app.use('/tags', tagsRouter);
-app.get('/api/tags/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const parsedId = Number(id);
-
-    if (!Number.isInteger(parsedId) || parsedId <= 0) {
-      return res.status(400).json({ error: 'Invalid tag id' });
-    }
-
-    const tag = await Tag.findByPk(parsedId);
-    if (!tag) {
-      return res.status(404).json({ error: 'Tag not found' });
-    }
-
-    return res.status(200).json({ id: tag.id, name: tag.name });
-  } catch (err) {
-    return res.status(400).json({ error: err.message });
-  }
-});
+app.use('/api/tags', tagsRouter);
 
 // Initialize database and sync models
 sequelize.sync({ force: true })  // Cleans the DB on every load
