@@ -4,8 +4,9 @@ const { Tag } = require('../models/tag');
 
 const router = express.Router();
 
-const parsePositiveInteger = (value) => {
+const parsePositiveInt = (value) => {
   if (value === undefined) return undefined;
+  if (!/^\d+$/.test(String(value))) return null;
   const parsed = Number(value);
   if (!Number.isInteger(parsed) || parsed <= 0) return null;
   return parsed;
@@ -13,8 +14,8 @@ const parsePositiveInteger = (value) => {
 
 router.get('/', async (req, res) => {
   try {
-    const parsedPage = parsePositiveInteger(req.query.page);
-    const parsedLimit = parsePositiveInteger(req.query.limit);
+    const parsedPage = parsePositiveInt(req.query.page);
+    const parsedLimit = parsePositiveInt(req.query.limit);
 
     if (parsedPage === null) {
       return res.status(400).json({ error: 'page must be a positive integer' });
@@ -25,17 +26,16 @@ router.get('/', async (req, res) => {
     }
 
     const page = parsedPage || 1;
-    const limit = Math.min(parsedLimit || 10, 100);
+    const requestedLimit = parsedLimit || 10;
+    const limit = Math.min(requestedLimit, 100);
     const offset = (page - 1) * limit;
-    const where = {};
 
-    const total = await Pet.count({ where, distinct: true, col: 'id' });
+    const total = await Pet.count();
     const data = await Pet.findAll({
-      where,
       include: Tag,
+      order: [['id', 'ASC']],
       limit,
       offset,
-      order: [['id', 'ASC']],
     });
 
     const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
@@ -52,6 +52,10 @@ router.get('/', async (req, res) => {
   } catch (err) {
     return res.status(400).json({ error: err.message });
   }
+});
+
+router.get('/types', (req, res) => {
+  res.json(['dog', 'cat', 'bird', 'fish', 'hamster']);
 });
 
 module.exports = router;
