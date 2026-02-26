@@ -1,5 +1,5 @@
 const jwt = require('jwt-simple');
-const User = require('../models/user');
+const { User } = require('../models/user');
 
 const secretKey = 'your_secret_key';
 

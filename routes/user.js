@@ -132,6 +132,9 @@ router.patch('/:id', authMiddleware, async (req, res) => {
     user.fullname = fullname || user.fullname;
 
     if (typeof issuperadmin !== 'undefined') {
+      if (!req.user.issuperadmin) {
+        return res.status(403).json({ error: 'Access denied. Superadmin only.' });
+      }
       user.issuperadmin = issuperadmin;
     }
 
