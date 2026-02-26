@@ -19,7 +19,7 @@ const Pet = sequelize.define('Pet', {
     type: DataTypes.INTEGER,
     allowNull: true,
     references: {
-      model: User,
+      model: 'Users',
       key: 'id',
     },
     onDelete: 'SET NULL',

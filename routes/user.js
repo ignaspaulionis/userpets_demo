@@ -134,6 +134,30 @@ router.patch('/:id', authMiddleware, async (req, res) => {
   }
 });
 
+// Delete User
+router.delete('/:id', authMiddleware, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({ error: 'Invalid user id' });
+    }
+
+    if (req.user.id !== id && !req.user.issuperadmin) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    await user.destroy();
+    return res.json({ message: 'User deleted successfully' });
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
+});
+
 // Get All Users (Superadmin Only)
 router.get('/', authMiddleware, async (req, res) => {
     try {

@@ -31,6 +31,12 @@ Pet.belongsTo(User, { foreignKey: 'userId', as: 'owner', onDelete: 'SET NULL' })
 
 const app = express();
 app.use(express.json());
+app.use((err, req, res, next) => {
+  if (err && err.type === 'entity.parse.failed') {
+    return res.status(400).json({ error: 'Malformed JSON' });
+  }
+  return next(err);
+});
 
 // Serve the index.html page at the root URL
 app.use(express.static(path.join(__dirname, 'public'))); // Adjust the folder name if necessary
