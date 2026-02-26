@@ -18,6 +18,12 @@ const Pet = sequelize.define('Pet', {
   userId: {
     type: DataTypes.INTEGER,
     allowNull: true,
+    references: {
+      model: 'Users',
+      key: 'id',
+    },
+    onDelete: 'SET NULL',
+    onUpdate: 'CASCADE',
   },
 });
 
