@@ -5,6 +5,22 @@
       "version": "1.0.0"
     },
     "paths": {
+      "/api/users/count": {
+        "get": {
+          "summary": "Get total registered users count",
+          "responses": {
+            "200": {
+              "description": "Current users count",
+              "schema": {
+                "$ref": "#/definitions/UserCount"
+              }
+            },
+            "500": {
+              "description": "Internal server error"
+            }
+          }
+        }
+      },
       "/pets": {
         "get": {
           "summary": "Get a list of pets",
@@ -110,6 +126,15 @@
       }
     },
     "definitions": {
+      "UserCount": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "example": 5
+          }
+        }
+      },
       "Pet": {
         "type": "object",
         "properties": {

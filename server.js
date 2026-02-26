@@ -29,6 +29,14 @@ Tag.belongsToMany(Pet, {
 const app = express();
 app.use(express.json());
 
+app.get('/api/users/count', async (req, res) => {
+  try {
+    const count = await User.count();
+    return res.status(200).json({ count });
+  } catch (error) {
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 // Serve the index.html page at the root URL
 app.use(express.static(path.join(__dirname, 'public'))); // Adjust the folder name if necessary
