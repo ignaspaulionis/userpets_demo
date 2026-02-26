@@ -8,6 +8,24 @@
       "/pets": {
         "get": {
           "summary": "Get a list of pets",
+          "parameters": [
+            {
+              "in": "query",
+              "name": "minAge",
+              "required": false,
+              "type": "integer",
+              "minimum": 0,
+              "description": "Minimum age (inclusive)"
+            },
+            {
+              "in": "query",
+              "name": "maxAge",
+              "required": false,
+              "type": "integer",
+              "minimum": 0,
+              "description": "Maximum age (inclusive)"
+            }
+          ],
           "responses": {
             "200": {
               "description": "A list of pets",
@@ -16,6 +34,12 @@
                 "items": {
                   "$ref": "#/definitions/Pet"
                 }
+              }
+            },
+            "400": {
+              "description": "Invalid age filter value",
+              "schema": {
+                "$ref": "#/definitions/Error"
               }
             }
           }
@@ -110,6 +134,14 @@
       }
     },
     "definitions": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        }
+      },
       "Pet": {
         "type": "object",
         "properties": {

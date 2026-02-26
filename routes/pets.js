@@ -1,5 +1,6 @@
 const express = require('express');
 const { Pet } = require('../models/pet');  // Import the Pet model
+const { Op } = require('sequelize');
 const { Tag } = require('../models/tag');
 
 const router = express.Router();
@@ -10,7 +11,31 @@ const isNonEmptyString = (value) => typeof value === 'string' && value.trim().le
 // List Pets
 router.get('/', async (req, res) => {
   try {
-    const pets = await Pet.findAll({ include: Tag });
+    const { minAge, maxAge } = req.query;
+    const where = {};
+
+    if (minAge !== undefined) {
+      const parsedMinAge = Number(minAge);
+      if (!Number.isInteger(parsedMinAge) || parsedMinAge < 0) {
+        return res.status(400).json({ error: 'minAge must be a non-negative integer' });
+      }
+      where.age = { ...(where.age || {}), [Op.gte]: parsedMinAge };
+    }
+
+    if (maxAge !== undefined) {
+      const parsedMaxAge = Number(maxAge);
+      if (!Number.isInteger(parsedMaxAge) || parsedMaxAge < 0) {
+        return res.status(400).json({ error: 'maxAge must be a non-negative integer' });
+      }
+      where.age = { ...(where.age || {}), [Op.lte]: parsedMaxAge };
+    }
+
+    const queryOptions = { include: Tag };
+    if (Object.keys(where).length > 0) {
+      queryOptions.where = where;
+    }
+
+    const pets = await Pet.findAll(queryOptions);
     res.json(pets);
   } catch (err) {
     res.status(400).json({ error: err.message });
