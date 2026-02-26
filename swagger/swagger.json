@@ -38,6 +38,18 @@
             "schema": {
               "$ref": "#/definitions/Pet"
             }
+          },
+          "400": {
+            "description": "Validation error (including invalid userId)",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "User not found for provided userId",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
           }
         }
       }
@@ -132,6 +144,18 @@
                 "$ref": "#/definitions/Pet"
               }
             }
+          },
+          "400": {
+            "description": "Invalid user id",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
           }
         }
       }
@@ -187,6 +211,15 @@
         "userId": {
           "type": "integer",
           "example": 1
+        }
+      }
+    },
+    "Error": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string",
+          "example": "Invalid userId"
         }
       }
     }

@@ -3,6 +3,7 @@ const jwt = require('jwt-simple');
 const bcrypt = require('bcryptjs');
 const User = require('../models/user');
 const { Pet } = require('../models/pet');
+const { Tag } = require('../models/tag');
 
 const isValidId = (value) => Number.isInteger(Number(value)) && Number(value) > 0;
 const { authMiddleware, isSuperadminMiddleware } = require('../middleware/auth');
@@ -54,11 +55,18 @@ router.get('/:id/pets', async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const pets = await Pet.findAll({ where: { userId: Number(id) } });
+    const pets = await Pet.findAll({
+      where: { userId: Number(id) },
+      include: [
+        { model: Tag },
+        { model: User, as: 'owner', attributes: ['id', 'fullname'], required: false },
+      ],
+    });
     const payload = pets.map((pet) => {
       const json = pet.toJSON();
-      json.userId = Number(id);
-      json.fullname = user.fullname;
+      json.userId = json.owner ? json.owner.id : json.userId;
+      json.fullname = json.owner ? json.owner.fullname : null;
+      delete json.owner;
       return json;
     });
 
