@@ -39,6 +39,40 @@
           }
         }
       },
+      "/api/pets": {
+        "get": {
+          "summary": "Get paginated list of pets",
+          "parameters": [
+            {
+              "in": "query",
+              "name": "page",
+              "required": false,
+              "type": "integer",
+              "default": 1,
+              "description": "Page number (positive integer)"
+            },
+            {
+              "in": "query",
+              "name": "limit",
+              "required": false,
+              "type": "integer",
+              "default": 10,
+              "description": "Items per page (positive integer, max 100)"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Paginated list of pets",
+              "schema": {
+                "$ref": "#/definitions/PaginatedPetsResponse"
+              }
+            },
+            "400": {
+              "description": "Invalid pagination parameters"
+            }
+          }
+        }
+      },
       "/pets/{id}": {
         "put": {
           "summary": "Update a pet",
@@ -110,6 +144,25 @@
       }
     },
     "definitions": {
+      "Pagination": {
+        "type": "object",
+        "properties": {
+          "page": { "type": "integer", "example": 1 },
+          "limit": { "type": "integer", "example": 10 },
+          "total": { "type": "integer", "example": 23 },
+          "totalPages": { "type": "integer", "example": 3 }
+        }
+      },
+      "PaginatedPetsResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/definitions/Pet" }
+          },
+          "pagination": { "$ref": "#/definitions/Pagination" }
+        }
+      },
       "Pet": {
         "type": "object",
         "properties": {
