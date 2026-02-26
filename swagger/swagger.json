@@ -127,6 +127,16 @@
           "age": {
             "type": "integer",
             "example": 3
+          },
+          "userId": {
+            "type": "integer",
+            "example": 1,
+            "x-nullable": true
+          },
+          "fullname": {
+            "type": "string",
+            "example": "Jane Doe",
+            "x-nullable": true
           }
         }
       }
