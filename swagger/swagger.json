@@ -5,6 +5,20 @@
       "version": "1.0.0"
     },
     "paths": {
+      "/health": {
+        "get": {
+          "summary": "Health check endpoint",
+          "description": "Returns service status and basic runtime information",
+          "responses": {
+            "200": {
+              "description": "Service is healthy",
+              "schema": {
+                "$ref": "#/definitions/Health"
+              }
+            }
+          }
+        }
+      },
       "/pets": {
         "get": {
           "summary": "Get a list of pets",
@@ -110,6 +124,25 @@
       }
     },
     "definitions": {
+      "Health": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "ok"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-02-26T21:46:00.000Z"
+          },
+          "uptime": {
+            "type": "number",
+            "example": 12.34
+          }
+        },
+        "required": ["status", "timestamp", "uptime"]
+      },
       "Pet": {
         "type": "object",
         "properties": {
