@@ -1,17 +1,31 @@
 const express = require('express');
 const { Pet } = require('../models/pet');  // Import the Pet model
 const { Tag } = require('../models/tag');
+const User = require('../models/user');
 
 const router = express.Router();
 
 const isValidId = (value) => Number.isInteger(Number(value)) && Number(value) > 0;
-const isNonEmptyString = (value) => typeof value === 'string' && value.trim().length > 0;
+
+const serializePet = (pet) => {
+  const { owner, ...rest } = pet.toJSON();
+  return {
+    ...rest,
+    userId: rest.userId ?? null,
+    fullname: owner ? owner.fullname : null,
+  };
+};
 
 // List Pets
 router.get('/', async (req, res) => {
   try {
-    const pets = await Pet.findAll({ include: Tag });
-    res.json(pets);
+    const pets = await Pet.findAll({
+      include: [
+        Tag,
+        { model: User, as: 'owner', attributes: ['id', 'fullname'], required: false },
+      ],
+    });
+    res.json(pets.map(serializePet));
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -20,26 +34,41 @@ router.get('/', async (req, res) => {
 // Add Pet
 router.post('/', async (req, res) => {
   try {
-    const { name, type, age } = req.body;
-    
-    // Validate name
+    const { name, type, age, userId } = req.body;
+
     if (!name || typeof name !== 'string' || name.length < 2 || name.length > 50) {
       return res.status(400).json({ error: "Name must be between 2 and 50 characters" });
     }
-    
-    // Validate age
+
     if (age === undefined || age === null || !Number.isInteger(age) || age < 0 || age > 30) {
       return res.status(400).json({ error: "Age must be an integer between 0 and 30" });
     }
-    
-    // Validate type
+
     const validTypes = ['dog', 'cat', 'bird', 'fish', 'hamster'];
     if (!type || typeof type !== 'string' || !validTypes.includes(type.toLowerCase())) {
       return res.status(400).json({ error: "Type must be one of: dog, cat, bird, fish, hamster" });
     }
-    
-    const newPet = await Pet.create({ name, type: type.toLowerCase(), age });
-    res.status(201).json(newPet);
+
+    if (userId !== undefined && userId !== null) {
+      if (!isValidId(userId)) {
+        return res.status(400).json({ error: 'userId must be a positive integer' });
+      }
+
+      const owner = await User.findByPk(userId);
+      if (!owner) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+    }
+
+    const newPet = await Pet.create({ name, type: type.toLowerCase(), age, userId: userId ?? null });
+    const createdPet = await Pet.findByPk(newPet.id, {
+      include: [
+        Tag,
+        { model: User, as: 'owner', attributes: ['id', 'fullname'], required: false },
+      ],
+    });
+
+    res.status(201).json(serializePet(createdPet));
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

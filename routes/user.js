@@ -2,12 +2,23 @@ const express = require('express');
 const jwt = require('jwt-simple');
 const bcrypt = require('bcryptjs');
 const User = require('../models/user');
+const { Pet } = require('../models/pet');
+const { Tag } = require('../models/tag');
 const { authMiddleware, isSuperadminMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
 const secretKey = 'your_secret_key';
 
+const isValidId = (value) => Number.isInteger(Number(value)) && Number(value) > 0;
 
+const serializePet = (pet) => {
+  const { owner, ...rest } = pet.toJSON();
+  return {
+    ...rest,
+    userId: rest.userId ?? null,
+    fullname: owner ? owner.fullname : null,
+  };
+};
 
 // Register
 router.post('/register', async (req, res) => {
@@ -38,6 +49,41 @@ router.post('/login', async (req, res) => {
   }
 });
 
+router.get('/user-stats', async (req, res) => {
+  try {
+    const users = await User.findAll({ attributes: ['id', 'email', 'issuperadmin'] });
+    return res.json(users);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+router.get('/:id/pets', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!isValidId(id)) {
+      return res.status(400).json({ error: 'Invalid user id' });
+    }
+
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const pets = await Pet.findAll({
+      where: { userId: Number(id) },
+      include: [
+        Tag,
+        { model: User, as: 'owner', attributes: ['id', 'fullname'], required: false },
+      ],
+    });
+
+    res.json(pets.map(serializePet));
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
 
 // Update User (PUT)
 router.put('/:id', authMiddleware, async (req, res) => {
@@ -74,7 +120,7 @@ router.patch('/:id', authMiddleware, async (req, res) => {
     if (typeof issuperadmin !== 'undefined') {
       user.issuperadmin = issuperadmin;
     }
-    
+
     await user.save();
     res.json({ message: 'User updated successfully', user });
   } catch (err) {
@@ -82,28 +128,35 @@ router.patch('/:id', authMiddleware, async (req, res) => {
   }
 });
 
+// Delete user
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!isValidId(id)) {
+      return res.status(400).json({ error: 'Invalid user id' });
+    }
+
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    await user.destroy();
+    return res.status(204).end();
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
+});
+
 // Get All Users (Superadmin Only)
 router.get('/', authMiddleware, async (req, res) => {
-    try {
-
-      const users = await User.findAll({ attributes: ['id', 'fullname', 'email', 'issuperadmin'] });
-      return res.json(users);
-
-    } catch (err) {
-      res.status(400).json({ error: err.message });
-    }
-  });
-
-router.get('/user-stats', async (req, res) => {
-    try {
-
-      const users = await User.findAll({ attributes: ['id', 'email', 'issuperadmin'] });
-      return res.json(users);
-
-    } catch (err) {
-      res.status(400).json({ error: err.message });
-    }
-  });
-
+  try {
+    const users = await User.findAll({ attributes: ['id', 'fullname', 'email', 'issuperadmin'] });
+    return res.json(users);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
 
 module.exports = router;
