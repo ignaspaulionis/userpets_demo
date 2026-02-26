@@ -28,7 +28,7 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Tag not found' });
     }
 
-    return res.status(200).json(tag);
+    return res.status(200).json({ id: tag.id, name: tag.name });
   } catch (err) {
     return res.status(400).json({ error: err.message });
   }
