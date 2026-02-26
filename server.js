@@ -13,6 +13,9 @@ const User = require('./models/user');
 const { Pet } = require('./models/pet');
 const { Tag } = require('./models/tag');
 
+User.hasMany(Pet, { foreignKey: 'userId' });
+Pet.belongsTo(User, { as: 'owner', foreignKey: 'userId', onDelete: 'SET NULL' });
+
 Pet.belongsToMany(Tag, {
   through: 'PetTags',
   foreignKey: 'petId',

@@ -1,6 +1,7 @@
 const express = require('express');
 const { Pet } = require('../models/pet');  // Import the Pet model
 const { Tag } = require('../models/tag');
+const User = require('../models/user');
 
 const router = express.Router();
 
@@ -10,8 +11,20 @@ const isNonEmptyString = (value) => typeof value === 'string' && value.trim().le
 // List Pets
 router.get('/', async (req, res) => {
   try {
-    const pets = await Pet.findAll({ include: Tag });
-    res.json(pets);
+    const pets = await Pet.findAll({
+      include: [
+        { model: Tag },
+        { model: User, as: 'owner', attributes: ['id', 'fullname'], required: false },
+      ],
+    });
+    const payload = pets.map((pet) => {
+      const json = pet.toJSON();
+      json.userId = json.owner ? json.owner.id : json.userId;
+      json.fullname = json.owner ? json.owner.fullname : null;
+      delete json.owner;
+      return json;
+    });
+    res.json(payload);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -38,8 +51,30 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: "Type must be one of: dog, cat, bird, fish, hamster" });
     }
     
-    const newPet = await Pet.create({ name, type: type.toLowerCase(), age });
-    res.status(201).json(newPet);
+    let ownerUserId = null;
+    if (typeof userId !== 'undefined') {
+      if (!Number.isInteger(userId) || userId <= 0) {
+        return res.status(400).json({ error: 'Invalid userId' });
+      }
+      const owner = await User.findByPk(userId);
+      if (!owner) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      ownerUserId = owner.id;
+    }
+
+    const newPet = await Pet.create({ name, type: type.toLowerCase(), age, userId: ownerUserId });
+    const createdPet = await Pet.findByPk(newPet.id, {
+      include: [
+        { model: Tag },
+        { model: User, as: 'owner', attributes: ['id', 'fullname'], required: false },
+      ],
+    });
+    const payload = createdPet.toJSON();
+    payload.userId = payload.owner ? payload.owner.id : payload.userId;
+    payload.fullname = payload.owner ? payload.owner.fullname : null;
+    delete payload.owner;
+    res.status(201).json(payload);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
