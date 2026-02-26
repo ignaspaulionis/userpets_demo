@@ -2,6 +2,8 @@ const express = require('express');
 const jwt = require('jwt-simple');
 const bcrypt = require('bcryptjs');
 const User = require('../models/user');
+const { Pet } = require('../models/pet');
+const { Tag } = require('../models/tag');
 const { authMiddleware, isSuperadminMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
@@ -38,6 +40,42 @@ router.post('/login', async (req, res) => {
   }
 });
 
+
+router.get('/:id/pets', async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({ error: 'Invalid user id' });
+    }
+
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const pets = await Pet.findAll({
+      where: { userId: id },
+      include: [
+        Tag,
+        { model: User, as: 'owner', attributes: ['id', 'fullname'], required: false },
+      ],
+    });
+
+    const serializedPets = pets.map((pet) => {
+      const petJson = pet.toJSON();
+      return {
+        ...petJson,
+        userId: petJson.owner ? petJson.owner.id : petJson.userId,
+        fullname: petJson.owner ? petJson.owner.fullname : null,
+        owner: undefined,
+      };
+    });
+
+    return res.json(serializedPets);
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
+});
 
 // Update User (PUT)
 router.put('/:id', authMiddleware, async (req, res) => {
