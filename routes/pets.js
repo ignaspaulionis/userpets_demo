@@ -20,11 +20,11 @@ router.get('/', async (req, res) => {
 
     const serializedPets = pets.map((pet) => {
       const petJson = pet.toJSON();
+      const { owner, ...rest } = petJson;
       return {
-        ...petJson,
-        userId: petJson.owner ? petJson.owner.id : petJson.userId,
-        fullname: petJson.owner ? petJson.owner.fullname : null,
-        owner: undefined,
+        ...rest,
+        userId: owner ? owner.id : rest.userId,
+        fullname: owner ? owner.fullname : null,
       };
     });
 
