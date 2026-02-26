@@ -1,7 +1,7 @@
 const express = require('express');
 const { Pet } = require('../models/pet');  // Import the Pet model
 const { Tag } = require('../models/tag');
-const User = require('../models/user');
+const { User } = require('../models/user');
 
 const router = express.Router();
 

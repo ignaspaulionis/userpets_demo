@@ -1,6 +1,6 @@
 const express = require('express');
 const jwt = require('jwt-simple');
-const User = require('../models/user');
+const { User } = require('../models/user');
 const { Pet } = require('../models/pet');
 const { authMiddleware } = require('../middleware/auth');
 
@@ -8,6 +8,16 @@ const router = express.Router();
 const secretKey = 'your_secret_key';
 
 const isValidId = (value) => Number.isInteger(Number(value)) && Number(value) > 0;
+
+const serializePetWithOwner = (pet) => {
+  const plain = pet.toJSON();
+  const { owner, ...petData } = plain;
+  return {
+    ...petData,
+    userId: petData.userId ?? null,
+    fullname: owner ? owner.fullname : null,
+  };
+};
 
 // Register
 router.post('/register', async (req, res) => {
@@ -70,17 +80,7 @@ router.get('/:id/pets', async (req, res) => {
       where: { userId: Number(id) },
       include: [{ model: User, as: 'owner', attributes: ['fullname'], required: false }],
     });
-    res.json(
-      pets.map((pet) => {
-        const plain = pet.toJSON();
-        const { owner, ...petData } = plain;
-        return {
-          ...petData,
-          userId: petData.userId ?? null,
-          fullname: owner ? owner.fullname : null,
-        };
-      })
-    );
+    res.json(pets.map(serializePetWithOwner));
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -169,6 +169,7 @@ router.delete('/:id', authMiddleware, async (req, res) => {
       return res.status(403).json({ error: 'Access denied' });
     }
 
+    await Pet.update({ userId: null }, { where: { userId: Number(id) } });
     await user.destroy();
     return res.status(204).end();
   } catch (err) {
