@@ -29,6 +29,25 @@ Tag.belongsToMany(Pet, {
 const app = express();
 app.use(express.json());
 
+app.get('/api/tags/:id', async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({ error: 'Invalid tag id' });
+    }
+
+    const tag = await Tag.findByPk(id);
+
+    if (!tag) {
+      return res.status(404).json({ error: 'Tag not found' });
+    }
+
+    return res.status(200).json({ id: tag.id, name: tag.name });
+  } catch (error) {
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 // Serve the index.html page at the root URL
 app.use(express.static(path.join(__dirname, 'public'))); // Adjust the folder name if necessary

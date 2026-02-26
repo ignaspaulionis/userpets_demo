@@ -107,9 +107,62 @@
             }
           }
         }
+      },
+      "/api/tags/{id}": {
+        "get": {
+          "summary": "Get a tag by id",
+          "parameters": [
+            {
+              "in": "path",
+              "name": "id",
+              "required": true,
+              "type": "integer",
+              "description": "Tag ID"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Tag found",
+              "schema": {
+                "$ref": "#/definitions/Tag"
+              }
+            },
+            "400": {
+              "description": "Invalid tag id",
+              "schema": {
+                "$ref": "#/definitions/Error"
+              }
+            },
+            "404": {
+              "description": "Tag not found",
+              "schema": {
+                "$ref": "#/definitions/Error"
+              }
+            }
+          }
+        }
       }
     },
     "definitions": {
+      "Tag": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        }
+      },
       "Pet": {
         "type": "object",
         "properties": {
