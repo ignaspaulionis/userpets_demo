@@ -45,6 +45,9 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/pets', petsRouter);
 app.use('/users', userRouter);
 app.use('/tags', tagsRouter);
+app.use('/api/pets', petsRouter);
+app.use('/api/users', userRouter);
+app.use('/api/tags', tagsRouter);
 
 // Catch-all 404 handler for unknown routes
 app.use((req, res) => res.status(404).json({ error: 'Not found' }));
