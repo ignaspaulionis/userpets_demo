@@ -24,8 +24,9 @@ const serializeUserPet = (pet) => ({
 // Register
 router.post('/register', async (req, res) => {
   try {
-    const { email, password, fullname } = req.body;
-    const newUser = await User.create({ email, password, fullname });
+    const { email, password, fullname, fullName } = req.body;
+    const normalizedFullname = fullname ?? fullName;
+    const newUser = await User.create({ email, password, fullname: normalizedFullname });
     res.status(201).json({ message: 'User registered successfully!' });
   } catch (err) {
     res.status(400).json({ error: err.message });
