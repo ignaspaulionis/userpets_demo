@@ -25,8 +25,17 @@ const serializeUserPet = (pet) => ({
 router.post('/register', async (req, res) => {
   try {
     const { email, password, fullname, fullName } = req.body;
-    const normalizedFullname = fullname ?? fullName;
-    const newUser = await User.create({ email, password, fullname: normalizedFullname });
+    const normalizedFullname = typeof fullname !== 'undefined' ? fullname : fullName;
+
+    if (typeof normalizedFullname !== 'string' || normalizedFullname.trim() === '') {
+      return res.status(400).json({ error: 'Full name is required' });
+    }
+
+    const newUser = await User.create({
+      email,
+      password,
+      fullname: normalizedFullname.trim(),
+    });
     res.status(201).json({ message: 'User registered successfully!' });
   } catch (err) {
     res.status(400).json({ error: err.message });
