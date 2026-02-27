@@ -46,7 +46,7 @@ router.put('/:id', async (req, res) => {
       return res.status(400).json({ error: 'Invalid tag id' });
     }
 
-    if (!isNonEmptyString(name)) {
+    if (name !== undefined && !isNonEmptyString(name)) {
       return res.status(400).json({ error: 'Name is required' });
     }
 
@@ -59,8 +59,13 @@ router.put('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Tag not found' });
     }
 
-    tag.name = name.trim();
-    tag.description = description === undefined ? tag.description : description;
+    if (name !== undefined) {
+      tag.name = name.trim();
+    }
+    if (description !== undefined) {
+      tag.description = description;
+    }
+
     await tag.save();
     res.json(tag);
   } catch (err) {
