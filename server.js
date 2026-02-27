@@ -45,6 +45,8 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/pets', petsRouter);
 app.use('/users', userRouter);
 app.use('/tags', tagsRouter);
+app.use('/api/pets', petsRouter);
+app.use('/api/tags', tagsRouter);
 
 // Initialize database and sync models
 sequelize.sync({ force: true })  // Cleans the DB on every load
