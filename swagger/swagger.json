@@ -8,6 +8,7 @@
       "/pets": {
         "get": {
           "summary": "Get a list of pets",
+          "description": "Returns pets sorted by name in ascending (A-Z) order by default.",
           "responses": {
             "200": {
               "description": "A list of pets",
