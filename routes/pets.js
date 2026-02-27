@@ -1,17 +1,36 @@
 const express = require('express');
 const { Pet } = require('../models/pet');  // Import the Pet model
 const { Tag } = require('../models/tag');
+const User = require('../models/user');
 
 const router = express.Router();
 
 const isValidId = (value) => Number.isInteger(Number(value)) && Number(value) > 0;
 const isNonEmptyString = (value) => typeof value === 'string' && value.trim().length > 0;
 
+const serializePet = (pet) => ({
+  id: pet.id,
+  name: pet.name,
+  type: pet.type,
+  age: pet.age,
+  userId: pet.owner ? pet.owner.id : null,
+  fullname: pet.owner ? pet.owner.fullname : null,
+  Tags: pet.Tags || [],
+  createdAt: pet.createdAt,
+  updatedAt: pet.updatedAt,
+});
+
 // List Pets
 router.get('/', async (req, res) => {
   try {
-    const pets = await Pet.findAll({ include: Tag });
-    res.json(pets);
+    const pets = await Pet.findAll({
+      include: [
+        Tag,
+        { model: User, as: 'owner', attributes: ['id', 'fullname'] },
+      ],
+      order: [['name', 'ASC']],
+    });
+    res.json(pets.map(serializePet));
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -20,7 +39,7 @@ router.get('/', async (req, res) => {
 // Add Pet
 router.post('/', async (req, res) => {
   try {
-    const { name, type, age } = req.body;
+    const { name, type, age, userId } = req.body;
     
     // Validate name
     if (!name || typeof name !== 'string' || name.length < 2 || name.length > 50) {
@@ -37,9 +56,28 @@ router.post('/', async (req, res) => {
     if (!type || typeof type !== 'string' || !validTypes.includes(type.toLowerCase())) {
       return res.status(400).json({ error: "Type must be one of: dog, cat, bird, fish, hamster" });
     }
+
+    let ownerId = null;
+    if (typeof userId !== 'undefined' && userId !== null) {
+      if (!isValidId(userId)) {
+        return res.status(400).json({ error: 'Invalid user id' });
+      }
+
+      const owner = await User.findByPk(userId);
+      if (!owner) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      ownerId = owner.id;
+    }
     
-    const newPet = await Pet.create({ name, type: type.toLowerCase(), age });
-    res.status(201).json(newPet);
+    const newPet = await Pet.create({ name, type: type.toLowerCase(), age, userId: ownerId });
+    const petWithOwner = await Pet.findByPk(newPet.id, {
+      include: [
+        Tag,
+        { model: User, as: 'owner', attributes: ['id', 'fullname'] },
+      ],
+    });
+    res.status(201).json(serializePet(petWithOwner));
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
