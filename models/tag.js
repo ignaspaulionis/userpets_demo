@@ -9,6 +9,10 @@ const Tag = sequelize.define('Tag', {
       notEmpty: true,
     },
   },
+  description: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
 });
 
 module.exports = { Tag };

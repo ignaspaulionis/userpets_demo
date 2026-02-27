@@ -41,7 +41,8 @@
       },
       "/pets/{id}": {
         "put": {
-          "summary": "Update a pet",
+          "summary": "Update a pet", 
+
           "parameters": [
             {
               "in": "path",
@@ -127,6 +128,40 @@
           "age": {
             "type": "integer",
             "example": 3
+          }
+        }
+      },
+      "Tag": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "friendly"
+          },
+          "description": {
+            "type": "string",
+            "x-nullable": true,
+            "example": "Good with kids"
+          }
+        }
+      },
+      "TagInput": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "friendly"
+          },
+          "description": {
+            "type": "string",
+            "x-nullable": true,
+            "example": "Good with kids"
           }
         }
       }
