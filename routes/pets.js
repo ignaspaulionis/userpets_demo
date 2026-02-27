@@ -10,8 +10,24 @@ const isNonEmptyString = (value) => typeof value === 'string' && value.trim().le
 // List Pets
 router.get('/', async (req, res) => {
   try {
-    const pets = await Pet.findAll({ include: Tag });
-    res.json(pets);
+    const page = req.query.page === undefined ? 1 : Number(req.query.page);
+    const limit = req.query.limit === undefined ? 10 : Number(req.query.limit);
+
+    if (!Number.isInteger(page) || !Number.isInteger(limit) || page <= 0 || limit <= 0) {
+      return res.status(400).json({ error: 'Invalid page or limit' });
+    }
+
+    const offset = (page - 1) * limit;
+    const totalCount = await Pet.count();
+    const pets = await Pet.findAll({ include: Tag, limit, offset });
+    const totalPages = totalCount === 0 ? 0 : Math.ceil(totalCount / limit);
+
+    res.json({
+      totalCount,
+      currentPage: page,
+      totalPages,
+      data: pets,
+    });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

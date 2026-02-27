@@ -7,15 +7,36 @@
     "paths": {
       "/pets": {
         "get": {
-          "summary": "Get a list of pets",
+          "summary": "Get a paginated list of pets",
+          "parameters": [
+            {
+              "in": "query",
+              "name": "page",
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "description": "Page number (must be > 0)"
+            },
+            {
+              "in": "query",
+              "name": "limit",
+              "type": "integer",
+              "minimum": 1,
+              "default": 10,
+              "description": "Page size (must be > 0)"
+            }
+          ],
           "responses": {
             "200": {
-              "description": "A list of pets",
+              "description": "Paginated list of pets",
               "schema": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/definitions/Pet"
-                }
+                "$ref": "#/definitions/PaginatedPetsResponse"
+              }
+            },
+            "400": {
+              "description": "Invalid pagination parameters",
+              "schema": {
+                "$ref": "#/definitions/Error"
               }
             }
           }
@@ -127,6 +148,38 @@
           "age": {
             "type": "integer",
             "example": 3
+          }
+        }
+      },
+      "PaginatedPetsResponse": {
+        "type": "object",
+        "properties": {
+          "totalCount": {
+            "type": "integer",
+            "example": 0
+          },
+          "currentPage": {
+            "type": "integer",
+            "example": 1
+          },
+          "totalPages": {
+            "type": "integer",
+            "example": 0
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/Pet"
+            }
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "Invalid page or limit"
           }
         }
       }
