@@ -43,6 +43,10 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Routes
 app.use('/pets', petsRouter);
+app.use('/api/pets', petsRouter);
+app.get('/api/pets/types', (req, res) => {
+  res.json(['dog', 'cat', 'bird', 'fish', 'hamster']);
+});
 app.use('/users', userRouter);
 app.use('/tags', tagsRouter);
 
