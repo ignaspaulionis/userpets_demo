@@ -126,6 +126,8 @@
           },
           "age": {
             "type": "integer",
+            "minimum": 0,
+            "maximum": 30,
             "example": 3
           }
         }

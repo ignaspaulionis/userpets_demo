@@ -7,6 +7,13 @@ const router = express.Router();
 const isValidId = (value) => Number.isInteger(Number(value)) && Number(value) > 0;
 const isNonEmptyString = (value) => typeof value === 'string' && value.trim().length > 0;
 
+const validatePetAge = (age) => {
+  if (age === undefined || age === null || !Number.isInteger(age) || age < 0 || age > 30) {
+    return "Age must be an integer between 0 and 30";
+  }
+  return null;
+};
+
 // List Pets
 router.get('/', async (req, res) => {
   try {
@@ -28,8 +35,9 @@ router.post('/', async (req, res) => {
     }
     
     // Validate age
-    if (age === undefined || age === null || !Number.isInteger(age) || age < 0 || age > 30) {
-      return res.status(400).json({ error: "Age must be an integer between 0 and 30" });
+    const ageValidationError = validatePetAge(age);
+    if (ageValidationError) {
+      return res.status(400).json({ error: ageValidationError });
     }
     
     // Validate type
@@ -49,12 +57,27 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { name, type, age } = req.body;
+
+    if (!name || typeof name !== 'string' || name.length < 2 || name.length > 50) {
+      return res.status(400).json({ error: "Name must be between 2 and 50 characters" });
+    }
+
+    const ageValidationError = validatePetAge(age);
+    if (ageValidationError) {
+      return res.status(400).json({ error: ageValidationError });
+    }
+
+    const validTypes = ['dog', 'cat', 'bird', 'fish', 'hamster'];
+    if (!type || typeof type !== 'string' || !validTypes.includes(type.toLowerCase())) {
+      return res.status(400).json({ error: "Type must be one of: dog, cat, bird, fish, hamster" });
+    }
+
     const pet = await Pet.findByPk(req.params.id);
     if (!pet) {
       return res.status(404).json({ error: 'Pet not found' });
     }
     pet.name = name;
-    pet.type = type;
+    pet.type = type.toLowerCase();
     pet.age = age;
     await pet.save();
     res.json(pet);
