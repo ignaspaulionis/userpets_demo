@@ -4,8 +4,14 @@ const { Tag } = require('../models/tag');
 
 const router = express.Router();
 
+const VALID_PET_TYPES = ['dog', 'cat', 'bird', 'fish', 'hamster'];
+
 const isValidId = (value) => Number.isInteger(Number(value)) && Number(value) > 0;
 const isNonEmptyString = (value) => typeof value === 'string' && value.trim().length > 0;
+
+router.get('/types', (req, res) => {
+  res.status(200).json({ types: VALID_PET_TYPES });
+});
 
 // List Pets
 router.get('/', async (req, res) => {
@@ -33,9 +39,8 @@ router.post('/', async (req, res) => {
     }
     
     // Validate type
-    const validTypes = ['dog', 'cat', 'bird', 'fish', 'hamster'];
-    if (!type || typeof type !== 'string' || !validTypes.includes(type.toLowerCase())) {
-      return res.status(400).json({ error: "Type must be one of: dog, cat, bird, fish, hamster" });
+    if (!type || typeof type !== 'string' || !VALID_PET_TYPES.includes(type.toLowerCase())) {
+      return res.status(400).json({ error: `Type must be one of: ${VALID_PET_TYPES.join(', ')}` });
     }
     
     const newPet = await Pet.create({ name, type: type.toLowerCase(), age });

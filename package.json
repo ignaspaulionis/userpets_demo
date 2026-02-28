@@ -3,12 +3,16 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest --runInBand --silent"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
+  "devDependencies": {
+    "jest": "^30.1.3",
+    "supertest": "^7.1.4"
+  },
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "express": "^5.2.1",

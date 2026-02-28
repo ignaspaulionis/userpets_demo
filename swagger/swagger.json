@@ -5,6 +5,28 @@
       "version": "1.0.0"
     },
     "paths": {
+      "/api/pets/types": {
+        "get": {
+          "summary": "Get allowed pet types",
+          "responses": {
+            "200": {
+              "description": "Allowed pet types",
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "types": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "example": ["dog", "cat", "bird", "fish", "hamster"]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "/pets": {
         "get": {
           "summary": "Get a list of pets",
