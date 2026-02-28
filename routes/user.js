@@ -12,14 +12,19 @@ const secretKey = 'your_secret_key';
 // Register
 router.post('/register', async (req, res) => {
   try {
-    const { email, password, fullname } = req.body;
+    const { email, password, fullname, fullName } = req.body;
+    const normalizedFullname = fullname || fullName;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!emailRegex.test(email)) {
       return res.status(400).json({ error: 'Invalid email format' });
     }
 
-    const newUser = await User.create({ email, password, fullname });
+    if (!normalizedFullname) {
+      return res.status(400).json({ error: 'Full name is required' });
+    }
+
+    const newUser = await User.create({ email, password, fullname: normalizedFullname });
     res.status(201).json({ message: 'User registered successfully!' });
   } catch (err) {
     res.status(400).json({ error: err.message });
