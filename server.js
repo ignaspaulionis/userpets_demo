@@ -2,6 +2,7 @@ const path = require('path');
 const express = require('express');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
+const cors = require('cors');
 const sequelize = require('./config/db');
 console.log('Requiring pets route...');
 
@@ -27,6 +28,7 @@ Tag.belongsToMany(Pet, {
 });
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 
 
