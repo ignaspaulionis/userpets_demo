@@ -11,16 +11,31 @@ const isNonEmptyString = (value) => typeof value === 'string' && value.trim().le
 // List Pets
 router.get('/', async (req, res) => {
   try {
-    const queryOptions = { include: Tag };
-    const normalizedName = typeof req.query.name === 'string' ? req.query.name.trim().toLowerCase() : '';
+    const options = { include: Tag };
+    const conditions = [];
 
-    if (normalizedName) {
-      queryOptions.where = where(fn('LOWER', col('Pet.name')), {
-        [Op.like]: `%${normalizedName}%`
-      });
+    const type = typeof req.query.type === 'string' ? req.query.type.trim().toLowerCase() : '';
+    const name = typeof req.query.name === 'string' ? req.query.name.trim() : '';
+
+    if (type) {
+      conditions.push(where(fn('lower', col('Pet.type')), {
+        [Op.eq]: type
+      }));
     }
 
-    const pets = await Pet.findAll(queryOptions);
+    if (name) {
+      conditions.push(where(fn('lower', col('Pet.name')), {
+        [Op.like]: `%${name.toLowerCase()}%`
+      }));
+    }
+
+    if (conditions.length === 1) {
+      options.where = conditions[0];
+    } else if (conditions.length > 1) {
+      options.where = { [Op.and]: conditions };
+    }
+
+    const pets = await Pet.findAll(options);
     res.json(pets);
   } catch (err) {
     res.status(400).json({ error: err.message });
