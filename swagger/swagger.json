@@ -179,7 +179,7 @@
         "properties": {
           "error": {
             "type": "string",
-            "example": "Invalid page or limit"
+            "example": "page and limit must be positive integers"
           }
         }
       }

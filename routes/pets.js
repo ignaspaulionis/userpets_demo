@@ -10,23 +10,24 @@ const isNonEmptyString = (value) => typeof value === 'string' && value.trim().le
 // List Pets
 router.get('/', async (req, res) => {
   try {
-    const page = req.query.page === undefined ? 1 : Number(req.query.page);
-    const limit = req.query.limit === undefined ? 10 : Number(req.query.limit);
+    const pageRaw = req.query.page ?? '1';
+    const limitRaw = req.query.limit ?? '10';
+    const page = Number(pageRaw);
+    const limit = Number(limitRaw);
 
-    if (!Number.isInteger(page) || !Number.isInteger(limit) || page <= 0 || limit <= 0) {
-      return res.status(400).json({ error: 'Invalid page or limit' });
+    if (!Number.isInteger(page) || page <= 0 || !Number.isInteger(limit) || limit <= 0) {
+      return res.status(400).json({ error: 'page and limit must be positive integers' });
     }
 
     const offset = (page - 1) * limit;
     const totalCount = await Pet.count();
-    const pets = await Pet.findAll({ include: Tag, limit, offset });
-    const totalPages = totalCount === 0 ? 0 : Math.ceil(totalCount / limit);
+    const pets = await Pet.findAll({ include: Tag, limit, offset, order: [['id', 'ASC']] });
 
     res.json({
+      data: pets,
       totalCount,
       currentPage: page,
-      totalPages,
-      data: pets,
+      totalPages: Math.ceil(totalCount / limit),
     });
   } catch (err) {
     res.status(400).json({ error: err.message });
