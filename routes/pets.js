@@ -20,6 +20,41 @@ router.get('/', async (req, res) => {
       });
     }
 
+    if (req.baseUrl === '/api/pets') {
+      const rawPage = req.query.page;
+      const rawLimit = req.query.limit;
+
+      if (rawPage !== undefined && (!/^\d+$/.test(String(rawPage)) || Number(rawPage) <= 0)) {
+        return res.status(400).json({ error: 'page must be a positive integer' });
+      }
+
+      if (rawLimit !== undefined && (!/^\d+$/.test(String(rawLimit)) || Number(rawLimit) <= 0)) {
+        return res.status(400).json({ error: 'limit must be a positive integer' });
+      }
+
+      const page = rawPage === undefined ? 1 : Number(rawPage);
+      const requestedLimit = rawLimit === undefined ? 10 : Number(rawLimit);
+      const limit = Math.min(requestedLimit, 100);
+      const offset = (page - 1) * limit;
+
+      const { rows, count } = await Pet.findAndCountAll({
+        ...options,
+        limit,
+        offset,
+        distinct: true,
+      });
+
+      return res.json({
+        data: rows,
+        pagination: {
+          page,
+          limit,
+          total: count,
+          totalPages: Math.ceil(count / limit),
+        },
+      });
+    }
+
     const pets = await Pet.findAll(options);
     res.json(pets);
   } catch (err) {

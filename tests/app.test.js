@@ -205,6 +205,60 @@ describe('API integration tests', () => {
       expect(res.body[0].name).toBe('Luna');
     });
 
+    test('lists pets with pagination on /api/pets using defaults', async () => {
+      await Pet.bulkCreate([
+        { name: 'Luna', type: 'cat', age: 2 },
+        { name: 'Milo', type: 'dog', age: 1 },
+      ]);
+
+      const res = await request(app).get('/api/pets');
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('data');
+      expect(Array.isArray(res.body.data)).toBe(true);
+      expect(res.body).toHaveProperty('pagination');
+      expect(res.body.pagination).toMatchObject({
+        page: 1,
+        limit: 10,
+        total: 2,
+        totalPages: 1,
+      });
+    });
+
+    test('supports page and limit on /api/pets', async () => {
+      const pets = Array.from({ length: 12 }).map((_, i) => ({
+        name: `Pet-${i + 1}`,
+        type: 'cat',
+        age: 2,
+      }));
+      await Pet.bulkCreate(pets);
+
+      const res = await request(app).get('/api/pets?page=2&limit=5');
+      expect(res.status).toBe(200);
+      expect(res.body.pagination).toMatchObject({
+        page: 2,
+        limit: 5,
+        total: 12,
+        totalPages: 3,
+      });
+      expect(res.body.data).toHaveLength(5);
+    });
+
+    test('caps limit at 100 on /api/pets', async () => {
+      const res = await request(app).get('/api/pets?limit=999');
+      expect(res.status).toBe(200);
+      expect(res.body.pagination.limit).toBe(100);
+    });
+
+    test('returns 400 for invalid page/limit on /api/pets', async () => {
+      const badPage = await request(app).get('/api/pets?page=0');
+      expect(badPage.status).toBe(400);
+      expect(badPage.body).toHaveProperty('error');
+
+      const badLimit = await request(app).get('/api/pets?limit=abc');
+      expect(badLimit.status).toBe(400);
+      expect(badLimit.body).toHaveProperty('error');
+    });
+
     test('creates pet with valid payload', async () => {
       const res = await request(app).post('/pets').send({
         name: 'Buddy',
