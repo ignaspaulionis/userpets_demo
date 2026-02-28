@@ -33,13 +33,13 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { name } = req.body;
 
     if (!isValidId(id)) {
       return res.status(400).json({ error: 'Invalid tag id' });
     }
 
-    if (!isNonEmptyString(name)) {
+    const { name } = req.body;
+    if (name === undefined || name === null || typeof name !== 'string' || name.trim() === '') {
       return res.status(400).json({ error: 'Name is required' });
     }
 
