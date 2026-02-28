@@ -46,7 +46,12 @@ router.put('/:id', async (req, res) => {
       return res.status(400).json({ error: 'Invalid tag id' });
     }
 
-    if (!isNonEmptyString(name)) {
+    const tag = await Tag.findByPk(id);
+    if (!tag) {
+      return res.status(404).json({ error: 'Tag not found' });
+    }
+
+    if (name !== undefined && !isNonEmptyString(name)) {
       return res.status(400).json({ error: 'Name is required' });
     }
 
@@ -54,13 +59,18 @@ router.put('/:id', async (req, res) => {
       return res.status(400).json({ error: 'Description must be a string or null' });
     }
 
-    const tag = await Tag.findByPk(id);
-    if (!tag) {
-      return res.status(404).json({ error: 'Tag not found' });
+    if (name === undefined && description === undefined) {
+      return res.status(400).json({ error: 'At least one updatable field is required' });
     }
 
-    tag.name = name.trim();
-    tag.description = description === undefined ? null : description;
+    if (name !== undefined) {
+      tag.name = name.trim();
+    }
+
+    if (description !== undefined) {
+      tag.description = description;
+    }
+
     await tag.save();
     res.json(tag);
   } catch (err) {
