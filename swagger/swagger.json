@@ -5,6 +5,27 @@
       "version": "1.0.0"
     },
     "paths": {
+      "/api/stats": {
+        "get": {
+          "summary": "Get total counts of users and pets",
+          "security": [
+            {
+              "BearerAuth": []
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Statistics fetched successfully",
+              "schema": {
+                "$ref": "#/definitions/Stats"
+              }
+            },
+            "401": {
+              "description": "Unauthorized"
+            }
+          }
+        }
+      },
       "/pets": {
         "get": {
           "summary": "Get a list of pets",
@@ -109,7 +130,28 @@
         }
       }
     },
+    "securityDefinitions": {
+      "BearerAuth": {
+        "type": "apiKey",
+        "name": "Authorization",
+        "in": "header",
+        "description": "JWT token in format: Bearer <token>"
+      }
+    },
     "definitions": {
+      "Stats": {
+        "type": "object",
+        "properties": {
+          "users": {
+            "type": "integer",
+            "example": 5
+          },
+          "pets": {
+            "type": "integer",
+            "example": 12
+          }
+        }
+      },
       "Pet": {
         "type": "object",
         "properties": {
