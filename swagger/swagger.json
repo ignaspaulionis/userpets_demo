@@ -39,6 +39,37 @@
           }
         }
       },
+      "/api/stats": {
+        "get": {
+          "summary": "Get total counts of users and pets",
+          "security": [
+            {
+              "BearerAuth": []
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Statistics retrieved successfully",
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "users": {
+                    "type": "integer",
+                    "example": 5
+                  },
+                  "pets": {
+                    "type": "integer",
+                    "example": 12
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized"
+            }
+          }
+        }
+      },
       "/pets/{id}": {
         "put": {
           "summary": "Update a pet",
@@ -107,6 +138,14 @@
             }
           }
         }
+      }
+    },
+    "securityDefinitions": {
+      "BearerAuth": {
+        "type": "apiKey",
+        "name": "Authorization",
+        "in": "header",
+        "description": "Use format: Bearer <token>"
       }
     },
     "definitions": {

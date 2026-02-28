@@ -8,6 +8,7 @@ console.log('Requiring pets route...');
 const petsRouter = require('./routes/pets');
 const userRouter = require('./routes/user');
 const tagsRouter = require('./routes/tags');
+const statsRouter = require('./routes/stats');
 
 const User = require('./models/user');
 const { Pet } = require('./models/pet');
@@ -45,6 +46,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/pets', petsRouter);
 app.use('/users', userRouter);
 app.use('/tags', tagsRouter);
+app.use('/api', statsRouter);
 
 // Initialize database and sync models
 sequelize.sync({ force: true })  // Cleans the DB on every load
