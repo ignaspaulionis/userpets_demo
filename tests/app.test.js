@@ -163,21 +163,22 @@ describe('API integration tests', () => {
       expect(res.body.user.issuperadmin).toBe(true);
     });
 
-    test('returns 404 when updating missing user', async () => {
-      const user = await User.create({
-        email: 'owner@example.com',
+    test('returns 404 when updating missing user in authorized context', async () => {
+      const superadmin = await User.create({
+        email: 'superadmin@example.com',
         password: 'password123',
-        fullname: 'Owner',
+        fullname: 'Super Admin',
+        issuperadmin: true,
       });
-      const token = jwt.encode({ userId: user.id }, secretKey);
+      const token = jwt.encode({ userId: superadmin.id }, secretKey);
 
       const res = await request(app)
         .put('/users/999')
         .set('Authorization', `Bearer ${token}`)
         .send({ fullname: 'Nope' });
 
-      expect(res.status).toBe(403);
-      expect(res.body.error).toBe('Access denied');
+      expect(res.status).toBe(404);
+      expect(res.body.error).toBe('User not found');
     });
 
     test('returns user stats', async () => {
