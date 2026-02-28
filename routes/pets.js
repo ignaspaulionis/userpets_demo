@@ -25,7 +25,7 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { name, type, age } = req.body;
-    const missingFields = getMissingRequiredFields(req.body, ['name', 'type']);
+    const missingFields = getMissingRequiredFields(req.body, ['name', 'type', 'age']);
 
     if (missingFields.length > 0) {
       return res.status(400).json({ error: 'Missing required fields', missingFields });
