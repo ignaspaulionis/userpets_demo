@@ -229,6 +229,21 @@ describe('API integration tests', () => {
       expect(res.body.error).toContain('Age must be an integer between 0 and 30');
     });
 
+    test('rejects pet creation for age -1, 101, and non-integer', async () => {
+      const payloadBase = { name: 'Buddy', type: 'dog' };
+
+      const negativeRes = await request(app).post('/pets').send({ ...payloadBase, age: -1 });
+      const overRes = await request(app).post('/pets').send({ ...payloadBase, age: 101 });
+      const nonIntegerRes = await request(app).post('/pets').send({ ...payloadBase, age: 2.5 });
+
+      expect(negativeRes.status).toBe(400);
+      expect(overRes.status).toBe(400);
+      expect(nonIntegerRes.status).toBe(400);
+      expect(negativeRes.body.error).toContain('Age must be an integer between 0 and 30');
+      expect(overRes.body.error).toContain('Age must be an integer between 0 and 30');
+      expect(nonIntegerRes.body.error).toContain('Age must be an integer between 0 and 30');
+    });
+
     test('rejects pet with invalid type', async () => {
       const res = await request(app).post('/pets').send({
         name: 'Buddy',
@@ -261,6 +276,42 @@ describe('API integration tests', () => {
       expect(res.status).toBe(200);
       expect(res.body.name).toBe('Patched');
       expect(res.body.type).toBe('cat');
+    });
+
+    test('supports age edge values on create and patch', async () => {
+      const createZero = await request(app).post('/pets').send({ name: 'Zero', type: 'cat', age: 0 });
+      const createThirty = await request(app).post('/pets').send({ name: 'Thirty', type: 'dog', age: 30 });
+
+      expect(createZero.status).toBe(201);
+      expect(createZero.body.age).toBe(0);
+      expect(createThirty.status).toBe(201);
+      expect(createThirty.body.age).toBe(30);
+
+      const patchZero = await request(app).patch(`/pets/${createThirty.body.id}`).send({ age: 0 });
+      expect(patchZero.status).toBe(200);
+      expect(patchZero.body.age).toBe(0);
+
+      const persisted = await Pet.findByPk(createThirty.body.id);
+      expect(persisted.age).toBe(0);
+    });
+
+    test('rejects invalid ages on PUT and PATCH', async () => {
+      const pet = await Pet.create({ name: 'Agey', type: 'cat', age: 3 });
+
+      const putNegative = await request(app).put(`/pets/${pet.id}`).send({ name: 'Agey', type: 'cat', age: -1 });
+      const putOver = await request(app).put(`/pets/${pet.id}`).send({ name: 'Agey', type: 'cat', age: 31 });
+      const putNonInteger = await request(app).put(`/pets/${pet.id}`).send({ name: 'Agey', type: 'cat', age: 1.5 });
+      const patchOver = await request(app).patch(`/pets/${pet.id}`).send({ age: 999 });
+
+      expect(putNegative.status).toBe(400);
+      expect(putOver.status).toBe(400);
+      expect(putNonInteger.status).toBe(400);
+      expect(patchOver.status).toBe(400);
+
+      expect(putNegative.body.error).toContain('Age must be an integer between 0 and 30');
+      expect(putOver.body.error).toContain('Age must be an integer between 0 and 30');
+      expect(putNonInteger.body.error).toContain('Age must be an integer between 0 and 30');
+      expect(patchOver.body.error).toContain('Age must be an integer between 0 and 30');
     });
 
     test('returns 404 when updating missing pet', async () => {

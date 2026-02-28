@@ -6,6 +6,7 @@ const router = express.Router();
 
 const isValidId = (value) => Number.isInteger(Number(value)) && Number(value) > 0;
 const isNonEmptyString = (value) => typeof value === 'string' && value.trim().length > 0;
+const isValidPetAge = (age) => Number.isInteger(age) && age >= 0 && age <= 30;
 
 // List Pets
 router.get('/', async (req, res) => {
@@ -28,7 +29,7 @@ router.post('/', async (req, res) => {
     }
     
     // Validate age
-    if (age === undefined || age === null || !Number.isInteger(age) || age < 0 || age > 30) {
+    if (age === undefined || age === null || !isValidPetAge(age)) {
       return res.status(400).json({ error: "Age must be an integer between 0 and 30" });
     }
     
@@ -53,6 +54,9 @@ router.put('/:id', async (req, res) => {
     if (!pet) {
       return res.status(404).json({ error: 'Pet not found' });
     }
+    if (!isValidPetAge(age)) {
+      return res.status(400).json({ error: "Age must be an integer between 0 and 30" });
+    }
     pet.name = name;
     pet.type = type;
     pet.age = age;
@@ -71,9 +75,12 @@ router.patch('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Pet not found' });
     }
     const { name, type, age } = req.body;
+    if (age !== undefined && !isValidPetAge(age)) {
+      return res.status(400).json({ error: "Age must be an integer between 0 and 30" });
+    }
     pet.name = name || pet.name;
     pet.type = type || pet.type;
-    pet.age = age || pet.age;
+    if (age !== undefined) pet.age = age;
     await pet.save();
     res.json(pet);
   } catch (err) {
