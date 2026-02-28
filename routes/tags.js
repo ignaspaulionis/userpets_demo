@@ -17,13 +17,20 @@ router.get('/', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    const { name } = req.body;
+    const { name, description } = req.body;
 
     if (!isNonEmptyString(name)) {
       return res.status(400).json({ error: 'Name is required' });
     }
 
-    const tag = await Tag.create({ name: name.trim() });
+    if (description !== undefined && description !== null && typeof description !== 'string') {
+      return res.status(400).json({ error: 'Description must be a string or null' });
+    }
+
+    const tag = await Tag.create({
+      name: name.trim(),
+      description: description === undefined ? null : description,
+    });
     res.status(201).json(tag);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -33,7 +40,7 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { name } = req.body;
+    const { name, description } = req.body;
 
     if (!isValidId(id)) {
       return res.status(400).json({ error: 'Invalid tag id' });
@@ -43,12 +50,17 @@ router.put('/:id', async (req, res) => {
       return res.status(400).json({ error: 'Name is required' });
     }
 
+    if (description !== undefined && description !== null && typeof description !== 'string') {
+      return res.status(400).json({ error: 'Description must be a string or null' });
+    }
+
     const tag = await Tag.findByPk(id);
     if (!tag) {
       return res.status(404).json({ error: 'Tag not found' });
     }
 
     tag.name = name.trim();
+    tag.description = description === undefined ? null : description;
     await tag.save();
     res.json(tag);
   } catch (err) {
