@@ -15,7 +15,7 @@ router.get('/', async (req, res) => {
     const normalizedName = typeof req.query.name === 'string' ? req.query.name.trim().toLowerCase() : '';
 
     if (normalizedName) {
-      queryOptions.where = where(fn('LOWER', col('name')), {
+      queryOptions.where = where(fn('LOWER', col('Pet.name')), {
         [Op.like]: `%${normalizedName}%`
       });
     }
