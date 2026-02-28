@@ -325,6 +325,25 @@ describe('API integration tests', () => {
       expect(res.body.error).toBe('Invalid tag id');
     });
 
+    test('returns 404 for missing tag on PUT', async () => {
+      const res = await request(app).put('/tags/999').send({ name: 'new' });
+      expect(res.status).toBe(404);
+      expect(res.body.error).toBe('Tag not found');
+    });
+
+    test('returns 400 for invalid PATCH tag name payload', async () => {
+      const tag = await Tag.create({ name: 'keep' });
+      const res = await request(app).patch(`/tags/${tag.id}`).send({ name: '   ' });
+      expect(res.status).toBe(400);
+      expect(res.body.error).toBe('Name must be a non-empty string');
+    });
+
+    test('returns 404 for missing tag on PATCH', async () => {
+      const res = await request(app).patch('/tags/999').send({ name: 'new' });
+      expect(res.status).toBe(404);
+      expect(res.body.error).toBe('Tag not found');
+    });
+
     test('returns 404 for missing tag on delete', async () => {
       const res = await request(app).delete('/tags/999');
       expect(res.status).toBe(404);
@@ -375,6 +394,26 @@ describe('API integration tests', () => {
     test('returns 404 when assigning missing tag', async () => {
       const pet = await Pet.create({ name: 'Milo', type: 'dog', age: 4 });
       const res = await request(app).post(`/pets/${pet.id}/tags/999`);
+      expect(res.status).toBe(404);
+      expect(res.body.error).toBe('Tag not found');
+    });
+
+    test('returns 400 for invalid pet/tag ids on remove', async () => {
+      const res = await request(app).delete('/pets/abc/tags/xyz');
+      expect(res.status).toBe(400);
+      expect(res.body.error).toBe('Invalid pet id or tag id');
+    });
+
+    test('returns 404 when removing from missing pet', async () => {
+      const tag = await Tag.create({ name: 'calm' });
+      const res = await request(app).delete(`/pets/999/tags/${tag.id}`);
+      expect(res.status).toBe(404);
+      expect(res.body.error).toBe('Pet not found');
+    });
+
+    test('returns 404 when removing missing tag', async () => {
+      const pet = await Pet.create({ name: 'Mia', type: 'cat', age: 1 });
+      const res = await request(app).delete(`/pets/${pet.id}/tags/999`);
       expect(res.status).toBe(404);
       expect(res.body.error).toBe('Tag not found');
     });
