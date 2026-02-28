@@ -39,6 +39,37 @@
           }
         }
       },
+      "/api/tags/{tagId}/pets": {
+        "get": {
+          "summary": "Get pets by tag ID",
+          "parameters": [
+            {
+              "in": "path",
+              "name": "tagId",
+              "required": true,
+              "type": "integer",
+              "description": "Tag ID"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Array of pets with this tag",
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/Pet"
+                }
+              }
+            },
+            "400": {
+              "description": "Invalid tag id"
+            },
+            "404": {
+              "description": "Tag not found"
+            }
+          }
+        }
+      },
       "/pets/{id}": {
         "put": {
           "summary": "Update a pet",

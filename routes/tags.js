@@ -1,5 +1,6 @@
 const express = require('express');
 const { Tag } = require('../models/tag');
+const { Pet } = require('../models/pet');
 
 const router = express.Router();
 
@@ -25,6 +26,29 @@ router.post('/', async (req, res) => {
 
     const tag = await Tag.create({ name: name.trim() });
     res.status(201).json(tag);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+router.get('/:tagId/pets', async (req, res) => {
+  try {
+    const { tagId } = req.params;
+
+    if (!isValidId(tagId)) {
+      return res.status(400).json({ error: 'Invalid tag id' });
+    }
+
+    const tag = await Tag.findByPk(tagId, {
+      include: [{ model: Pet, through: { attributes: [] } }],
+    });
+
+    if (!tag) {
+      return res.status(404).json({ error: 'Tag not found' });
+    }
+
+    const pets = tag.Pets.map(({ id, name, type, age }) => ({ id, name, type, age }));
+    res.json(pets);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
