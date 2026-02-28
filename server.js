@@ -3,7 +3,6 @@ const express = require('express');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
 const sequelize = require('./config/db');
-console.log('Requiring pets route...');
 
 const petsRouter = require('./routes/pets');
 const userRouter = require('./routes/user');
@@ -26,31 +25,39 @@ Tag.belongsToMany(Pet, {
   onDelete: 'CASCADE',
 });
 
-const app = express();
-app.use(express.json());
+function createApp() {
+  const app = express();
+  app.use(express.json());
 
+  app.use(express.static(path.join(__dirname, 'public')));
 
-// Serve the index.html page at the root URL
-app.use(express.static(path.join(__dirname, 'public'))); // Adjust the folder name if necessary
+  const swaggerSpec = swaggerJsdoc({
+    definition: require('./swagger/swagger.json'),
+    apis: ['./routes/pets.js'],
+  });
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
+  app.use('/pets', petsRouter);
+  app.use('/users', userRouter);
+  app.use('/tags', tagsRouter);
 
-// Swagger setup
-const swaggerSpec = swaggerJsdoc({
-  definition: require('./swagger/swagger.json'),
-  apis: ['./routes/pets.js'],
-});
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  return app;
+}
 
-// Routes
-app.use('/pets', petsRouter);
-app.use('/users', userRouter);
-app.use('/tags', tagsRouter);
+async function startServer() {
+  await sequelize.sync({ force: process.env.NODE_ENV === 'test' });
+  const app = createApp();
+  const port = process.env.PORT || 3000;
+  return app.listen(port, () => {
+    console.log(`Server running on http://localhost:${port}`);
+  });
+}
 
-// Initialize database and sync models
-sequelize.sync({ force: true })  // Cleans the DB on every load
-  .then(() => console.log('Database synced'));
+if (require.main === module) {
+  startServer().catch((error) => {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  });
+}
 
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
-});
+module.exports = { createApp, startServer, sequelize, User, Pet, Tag };
