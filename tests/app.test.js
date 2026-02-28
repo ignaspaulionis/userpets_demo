@@ -104,6 +104,53 @@ describe('API integration tests', () => {
       expect(res.body[0]).toHaveProperty('email');
     });
 
+    test('filters users by name case-insensitively with partial matching', async () => {
+      await User.create({
+        email: 'john@example.com',
+        password: 'password123',
+        fullname: 'John Doe',
+      });
+      await User.create({
+        email: 'jane@example.com',
+        password: 'password123',
+        fullname: 'Jane Smith',
+      });
+      const authUser = await User.create({
+        email: 'auth-search@example.com',
+        password: 'password123',
+        fullname: 'Auth Search',
+      });
+      const token = jwt.encode({ userId: authUser.id }, secretKey);
+
+      const caseInsensitiveRes = await request(app)
+        .get('/users?name=jOhN')
+        .set('Authorization', `Bearer ${token}`);
+      expect(caseInsensitiveRes.status).toBe(200);
+      expect(caseInsensitiveRes.body).toHaveLength(1);
+      expect(caseInsensitiveRes.body[0].fullname).toBe('John Doe');
+
+      const partialRes = await request(app)
+        .get('/users?name=ohn')
+        .set('Authorization', `Bearer ${token}`);
+      expect(partialRes.status).toBe(200);
+      expect(partialRes.body).toHaveLength(1);
+      expect(partialRes.body[0].fullname).toBe('John Doe');
+
+      const exactRes = await request(app)
+        .get('/users?name=John Doe')
+        .set('Authorization', `Bearer ${token}`);
+      expect(exactRes.status).toBe(200);
+      expect(exactRes.body).toHaveLength(1);
+      expect(exactRes.body[0].fullname).toBe('John Doe');
+
+      const aliasRes = await request(app)
+        .get('/users?q=smith')
+        .set('Authorization', `Bearer ${token}`);
+      expect(aliasRes.status).toBe(200);
+      expect(aliasRes.body).toHaveLength(1);
+      expect(aliasRes.body[0].fullname).toBe('Jane Smith');
+    });
+
     test('forbids updating another user without superadmin', async () => {
       const userA = await User.create({
         email: 'a@example.com',

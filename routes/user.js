@@ -2,6 +2,7 @@ const express = require('express');
 const jwt = require('jwt-simple');
 const bcrypt = require('bcryptjs');
 const User = require('../models/user');
+const { Op, fn, col, where } = require('sequelize');
 const { authMiddleware, isSuperadminMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
@@ -85,8 +86,23 @@ router.patch('/:id', authMiddleware, async (req, res) => {
 // Get All Users (Superadmin Only)
 router.get('/', authMiddleware, async (req, res) => {
     try {
+      const rawSearchTerm = req.query.name ?? req.query.q;
+      const searchTerm = typeof rawSearchTerm === 'string' ? rawSearchTerm.trim() : '';
 
-      const users = await User.findAll({ attributes: ['id', 'fullname', 'email', 'issuperadmin'] });
+      const whereClause = searchTerm
+        ? {
+            [Op.and]: [
+              where(fn('LOWER', col('fullname')), {
+                [Op.like]: `%${searchTerm.toLowerCase()}%`,
+              }),
+            ],
+          }
+        : undefined;
+
+      const users = await User.findAll({
+        where: whereClause,
+        attributes: ['id', 'fullname', 'email', 'issuperadmin'],
+      });
       return res.json(users);
 
     } catch (err) {
