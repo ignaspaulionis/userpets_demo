@@ -36,8 +36,8 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: "Name must be between 2 and 50 characters" });
     }
     
-    // Validate age
-    if (age === undefined || age === null || !Number.isInteger(age) || age < 0 || age > 30) {
+    // Validate age (optional, but constrained when provided)
+    if (age !== undefined && age !== null && (!Number.isInteger(age) || age < 0 || age > 30)) {
       return res.status(400).json({ error: "Age must be an integer between 0 and 30" });
     }
     
@@ -47,7 +47,12 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: "Type must be one of: dog, cat, bird, fish, hamster" });
     }
     
-    const newPet = await Pet.create({ name, type: type.toLowerCase(), age });
+    const petPayload = { name, type: type.toLowerCase() };
+    if (age !== undefined && age !== null) {
+      petPayload.age = age;
+    }
+
+    const newPet = await Pet.create(petPayload);
     res.status(201).json(newPet);
   } catch (err) {
     res.status(400).json({ error: err.message });
