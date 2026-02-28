@@ -15,17 +15,17 @@ router.get('/', async (req, res) => {
     const conditions = [];
 
     const type = typeof req.query.type === 'string' ? req.query.type.trim().toLowerCase() : '';
-    const name = typeof req.query.name === 'string' ? req.query.name.trim() : '';
+    const name = typeof req.query.name === 'string' ? req.query.name.trim().toLowerCase() : '';
 
     if (type) {
-      conditions.push(where(fn('lower', col('Pet.type')), {
+      conditions.push(where(fn('LOWER', col('type')), {
         [Op.eq]: type
       }));
     }
 
     if (name) {
-      conditions.push(where(fn('lower', col('Pet.name')), {
-        [Op.like]: `%${name.toLowerCase()}%`
+      conditions.push(where(fn('LOWER', col('name')), {
+        [Op.like]: `%${name}%`
       }));
     }
 
