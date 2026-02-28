@@ -40,6 +40,7 @@ function createApp() {
   app.use('/pets', petsRouter);
   app.use('/users', userRouter);
   app.use('/tags', tagsRouter);
+  app.use('/api/tags', tagsRouter);
 
   return app;
 }

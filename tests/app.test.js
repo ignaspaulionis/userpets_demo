@@ -350,6 +350,27 @@ describe('API integration tests', () => {
       expect(res.body.error).toBe('Tag not found');
     });
 
+    test('gets a single tag by id from /api/tags/:id', async () => {
+      const tag = await Tag.create({ name: 'friendly' });
+      const res = await request(app).get(`/api/tags/${tag.id}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.id).toBe(tag.id);
+      expect(res.body.name).toBe('friendly');
+    });
+
+    test('returns 404 for missing tag on /api/tags/:id', async () => {
+      const res = await request(app).get('/api/tags/999');
+      expect(res.status).toBe(404);
+      expect(res.body.error).toBe('Tag not found');
+    });
+
+    test('returns 400 for invalid tag id on /api/tags/:id', async () => {
+      const res = await request(app).get('/api/tags/abc');
+      expect(res.status).toBe(400);
+      expect(res.body.error).toBe('Invalid tag id');
+    });
+
     test('deletes existing tag', async () => {
       const tag = await Tag.create({ name: 'delete-tag' });
       const res = await request(app).delete(`/tags/${tag.id}`);
