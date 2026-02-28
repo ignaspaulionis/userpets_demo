@@ -6,14 +6,22 @@ const { authMiddleware, isSuperadminMiddleware } = require('../middleware/auth')
 
 const router = express.Router();
 const secretKey = 'your_secret_key';
-
-
+const getMissingRequiredFields = (body, requiredFields) => requiredFields.filter((field) => {
+  const value = body[field];
+  return value === undefined || value === null || (typeof value === 'string' && value.trim().length === 0);
+});
 
 // Register
 router.post('/register', async (req, res) => {
   try {
     const { email, password, fullname } = req.body;
-    const newUser = await User.create({ email, password, fullname });
+    const missingFields = getMissingRequiredFields(req.body, ['email', 'password', 'fullname']);
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({ error: 'Missing required fields', missingFields });
+    }
+
+    await User.create({ email, password, fullname });
     res.status(201).json({ message: 'User registered successfully!' });
   } catch (err) {
     res.status(400).json({ error: err.message });
