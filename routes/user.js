@@ -14,9 +14,10 @@ router.post('/register', async (req, res) => {
   try {
     const { email, password, fullname, fullName } = req.body;
     const normalizedFullname = fullname || fullName;
+    const normalizedEmail = typeof email === 'string' ? email.trim().toLowerCase() : email;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(normalizedEmail)) {
       return res.status(400).json({ error: 'Invalid email format' });
     }
 
@@ -24,7 +25,12 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'Full name is required' });
     }
 
-    const newUser = await User.create({ email, password, fullname: normalizedFullname });
+    const existingUser = await User.findOne({ where: { email: normalizedEmail } });
+    if (existingUser) {
+      return res.status(400).json({ error: 'Email already exists' });
+    }
+
+    await User.create({ email: normalizedEmail, password, fullname: normalizedFullname });
     res.status(201).json({ message: 'User registered successfully!' });
   } catch (err) {
     res.status(400).json({ error: err.message });
