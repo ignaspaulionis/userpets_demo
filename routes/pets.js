@@ -10,8 +10,61 @@ const isNonEmptyString = (value) => typeof value === 'string' && value.trim().le
 // List Pets
 router.get('/', async (req, res) => {
   try {
-    const pets = await Pet.findAll({ include: Tag });
-    res.json(pets);
+    const isApiRequest = req.baseUrl === '/api/pets';
+
+    if (!isApiRequest) {
+      const pets = await Pet.findAll({ include: Tag });
+      return res.json(pets);
+    }
+
+    const { page: rawPage, limit: rawLimit } = req.query;
+
+    const parsePositiveInteger = (value) => {
+      if (typeof value !== 'string' || !/^\d+$/.test(value)) {
+        return null;
+      }
+      const parsed = Number(value);
+      return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+    };
+
+    let page = 1;
+    let limit = 10;
+
+    if (rawPage !== undefined) {
+      const parsedPage = parsePositiveInteger(rawPage);
+      if (parsedPage === null) {
+        return res.status(400).json({ error: 'page must be a positive integer' });
+      }
+      page = parsedPage;
+    }
+
+    if (rawLimit !== undefined) {
+      const parsedLimit = parsePositiveInteger(rawLimit);
+      if (parsedLimit === null) {
+        return res.status(400).json({ error: 'limit must be a positive integer' });
+      }
+      limit = Math.min(parsedLimit, 100);
+    }
+
+    const offset = (page - 1) * limit;
+    const { rows, count } = await Pet.findAndCountAll({
+      include: Tag,
+      distinct: true,
+      limit,
+      offset,
+    });
+
+    const totalPages = count === 0 ? 0 : Math.ceil(count / limit);
+
+    return res.json({
+      data: rows,
+      pagination: {
+        page,
+        limit,
+        total: count,
+        totalPages,
+      },
+    });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
