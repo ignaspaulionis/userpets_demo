@@ -39,6 +39,7 @@ router.post('/', async (req, res) => {
     }
     
     const newPet = await Pet.create({ name, type: type.toLowerCase(), age });
+    req.app.locals.petNotifier.broadcastPetCreated(newPet);
     res.status(201).json(newPet);
   } catch (err) {
     res.status(400).json({ error: err.message });

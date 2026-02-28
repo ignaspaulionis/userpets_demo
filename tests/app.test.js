@@ -1,14 +1,18 @@
 const request = require('supertest');
 const jwt = require('jwt-simple');
-const { createApp, sequelize, User, Pet, Tag } = require('../server');
+const http = require('http');
+const WebSocket = require('ws');
+const { createApp, createPetNotifier, sequelize, User, Pet, Tag } = require('../server');
 
 const secretKey = 'your_secret_key';
 
 describe('API integration tests', () => {
   let app;
+  let petNotifier;
 
   beforeAll(async () => {
-    app = createApp();
+    petNotifier = createPetNotifier();
+    app = createApp({ petNotifier });
     await sequelize.sync({ force: true });
   });
 
@@ -238,6 +242,59 @@ describe('API integration tests', () => {
 
       expect(res.status).toBe(400);
       expect(res.body.error).toContain('Type must be one of');
+    });
+
+    test('emits websocket pet_created event after successful POST /pets', async () => {
+      const wsApp = createApp({ petNotifier: createPetNotifier() });
+      const server = http.createServer(wsApp);
+      const wssNotifier = wsApp.locals.petNotifier;
+      const wss = new WebSocket.Server({ server });
+
+      wss.on('connection', (socket) => {
+        wssNotifier.register(socket);
+      });
+
+      await new Promise((resolve) => server.listen(0, resolve));
+      const { port } = server.address();
+
+      const wsMessagePromise = new Promise((resolve, reject) => {
+        const client = new WebSocket(`ws://127.0.0.1:${port}`);
+
+        client.on('message', (rawData) => {
+          try {
+            const message = JSON.parse(rawData.toString());
+            resolve(message);
+          } catch (error) {
+            reject(error);
+          } finally {
+            client.close();
+          }
+        });
+
+        client.on('error', reject);
+      });
+
+      await new Promise((resolve) => wss.once('connection', resolve));
+
+      const postRes = await request(server).post('/pets').send({
+        name: 'Realtime',
+        type: 'cat',
+        age: 2,
+      });
+
+      expect(postRes.status).toBe(201);
+
+      const wsMessage = await wsMessagePromise;
+      expect(wsMessage.type).toBe('pet_created');
+      expect(wsMessage.payload).toMatchObject({
+        name: 'Realtime',
+        type: 'cat',
+        age: 2,
+      });
+      expect(wsMessage.payload.id).toBeTruthy();
+
+      await new Promise((resolve) => wss.close(resolve));
+      await new Promise((resolve) => server.close(resolve));
     });
 
     test('updates pet with PUT', async () => {

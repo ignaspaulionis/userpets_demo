@@ -1,5 +1,7 @@
 const path = require('path');
 const express = require('express');
+const http = require('http');
+const { WebSocketServer, WebSocket } = require('ws');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
 const sequelize = require('./config/db');
@@ -25,9 +27,39 @@ Tag.belongsToMany(Pet, {
   onDelete: 'CASCADE',
 });
 
-function createApp() {
+function createPetNotifier() {
+  const clients = new Set();
+
+  return {
+    register(client) {
+      clients.add(client);
+      client.on('close', () => clients.delete(client));
+    },
+    broadcastPetCreated(pet) {
+      const message = JSON.stringify({
+        type: 'pet_created',
+        payload: {
+          id: pet.id,
+          name: pet.name,
+          type: pet.type,
+          age: pet.age,
+        },
+      });
+
+      for (const client of clients) {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(message);
+        }
+      }
+    },
+  };
+}
+
+function createApp(options = {}) {
   const app = express();
   app.use(express.json());
+
+  app.locals.petNotifier = options.petNotifier || { broadcastPetCreated: () => {} };
 
   app.use(express.static(path.join(__dirname, 'public')));
 
@@ -46,10 +78,21 @@ function createApp() {
 
 async function startServer() {
   await sequelize.sync({ force: process.env.NODE_ENV === 'test' });
-  const app = createApp();
+  const notifier = createPetNotifier();
+  const app = createApp({ petNotifier: notifier });
+  const server = http.createServer(app);
+  const wss = new WebSocketServer({ server });
+
+  wss.on('connection', (ws) => {
+    notifier.register(ws);
+  });
+
   const port = process.env.PORT || 3000;
-  return app.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
+  return new Promise((resolve) => {
+    server.listen(port, () => {
+      console.log(`Server running on http://localhost:${port}`);
+      resolve(server);
+    });
   });
 }
 
@@ -60,4 +103,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { createApp, startServer, sequelize, User, Pet, Tag };
+module.exports = { createApp, startServer, createPetNotifier, sequelize, User, Pet, Tag };

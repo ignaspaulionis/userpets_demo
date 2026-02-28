@@ -30,6 +30,9 @@
     <div class="refresh-time">
       <small>Refreshing every 5 seconds...</small>
     </div>
+
+    <h2>Real-time Pet Notifications</h2>
+    <div id="pet-notifications" class="info">Waiting for new pets...</div>
   </div>
 
   <script>
@@ -73,11 +76,38 @@
       }
     }
 
+    function connectPetNotifications() {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const ws = new WebSocket(`${protocol}//${window.location.host}`);
+      const notificationsEl = document.getElementById('pet-notifications');
+
+      ws.addEventListener('message', (event) => {
+        try {
+          const message = JSON.parse(event.data);
+          if (message.type !== 'pet_created') {
+            return;
+          }
+
+          const { name, type, age } = message.payload;
+          const notification = document.createElement('div');
+          notification.innerHTML = `New pet added: <strong>${name}</strong> (${type}, age ${age})`;
+          notificationsEl.prepend(notification);
+        } catch (error) {
+          console.error('Error handling websocket message:', error);
+        }
+      });
+
+      ws.addEventListener('close', () => {
+        setTimeout(connectPetNotifications, 1000);
+      });
+    }
+
     // Refresh the page content every 5 seconds
     setInterval(fetchUserInfo, 5000);
 
     // Fetch the user info when the page loads
     fetchUserInfo();
+    connectPetNotifications();
   </script>
 </body>
 </html>
