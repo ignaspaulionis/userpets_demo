@@ -27,14 +27,18 @@
               "in": "body",
               "name": "pet",
               "description": "Pet to be added",
+              "required": true,
               "schema": {
-                "$ref": "#/definitions/Pet"
+                "$ref": "#/definitions/NewPet"
               }
             }
           ],
           "responses": {
             "201": {
               "description": "Pet added successfully"
+            },
+            "400": {
+              "description": "Validation error"
             }
           }
         }
@@ -122,12 +126,40 @@
           },
           "type": {
             "type": "string",
-            "example": "Dog"
+            "example": "dog"
           },
           "age": {
             "type": "integer",
             "example": 3
           }
+        }
+      },
+      "NewPet": {
+        "type": "object",
+        "required": ["name", "type", "age"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 50,
+            "example": "Milo"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["dog", "cat", "bird", "fish", "hamster"],
+            "example": "dog"
+          },
+          "age": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 30,
+            "example": 3
+          }
+        },
+        "example": {
+          "name": "Milo",
+          "type": "dog",
+          "age": 3
         }
       }
     }
