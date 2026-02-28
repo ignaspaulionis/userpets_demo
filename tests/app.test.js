@@ -32,6 +32,44 @@ describe('API integration tests', () => {
       expect(res.body).toEqual({ message: 'User registered successfully!' });
     });
 
+    test('returns missing required fields for register', async () => {
+      const res = await request(app).post('/users/register').send({
+        email: 'user1@example.com',
+      });
+
+      expect(res.status).toBe(400);
+      expect(res.body).toEqual({
+        error: 'Missing required fields',
+        missingFields: ['password', 'fullname'],
+      });
+    });
+
+    test('treats empty strings as missing for register', async () => {
+      const res = await request(app).post('/users/register').send({
+        email: 'user1@example.com',
+        password: 'password123',
+        fullname: '   ',
+      });
+
+      expect(res.status).toBe(400);
+      expect(res.body).toEqual({
+        error: 'Missing required fields',
+        missingFields: ['fullname'],
+      });
+    });
+
+    test('ignores unknown fields on register', async () => {
+      const res = await request(app).post('/users/register').send({
+        email: 'extra@example.com',
+        password: 'password123',
+        fullname: 'Extra User',
+        extra: 'ignored',
+      });
+
+      expect(res.status).toBe(201);
+      expect(res.body).toEqual({ message: 'User registered successfully!' });
+    });
+
     test('rejects duplicate registration', async () => {
       await User.create({
         email: 'dup@example.com',
@@ -216,6 +254,48 @@ describe('API integration tests', () => {
       expect(res.body.name).toBe('Buddy');
       expect(res.body.type).toBe('dog');
       expect(res.body.age).toBe(4);
+    });
+
+    test('returns missing required fields for pet create', async () => {
+      const res = await request(app).post('/pets').send({
+        type: 'dog',
+        age: 2,
+      });
+
+      expect(res.status).toBe(400);
+      expect(res.body).toEqual({
+        error: 'Missing required fields',
+        missingFields: ['name'],
+      });
+    });
+
+    test('treats empty strings as missing for pet create', async () => {
+      const res = await request(app).post('/pets').send({
+        name: '   ',
+        type: 'dog',
+        age: 2,
+      });
+
+      expect(res.status).toBe(400);
+      expect(res.body).toEqual({
+        error: 'Missing required fields',
+        missingFields: ['name'],
+      });
+    });
+
+    test('ignores unknown fields on pet create', async () => {
+      const res = await request(app).post('/pets').send({
+        name: 'Buddy',
+        type: 'dog',
+        age: 4,
+        extra: 'ignored',
+      });
+
+      expect(res.status).toBe(201);
+      expect(res.body.name).toBe('Buddy');
+      expect(res.body.type).toBe('dog');
+      expect(res.body.age).toBe(4);
+      expect(res.body.extra).toBeUndefined();
     });
 
     test('rejects pet with invalid age', async () => {

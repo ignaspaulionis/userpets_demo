@@ -7,6 +7,10 @@ const router = express.Router();
 
 const isValidId = (value) => Number.isInteger(Number(value)) && Number(value) > 0;
 const isNonEmptyString = (value) => typeof value === 'string' && value.trim().length > 0;
+const collectMissingFields = (payload, requiredFields) => requiredFields.filter((field) => {
+  const value = payload[field];
+  return value === undefined || value === null || (typeof value === 'string' && value.trim() === '');
+});
 
 // List Pets
 router.get('/', async (req, res) => {
@@ -31,24 +35,29 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { name, type, age } = req.body;
-    
+
+    const missingFields = collectMissingFields(req.body, ['name', 'type']);
+    if (missingFields.length > 0) {
+      return res.status(400).json({ error: 'Missing required fields', missingFields });
+    }
+
     // Validate name
-    if (!name || typeof name !== 'string' || name.length < 2 || name.length > 50) {
+    if (typeof name !== 'string' || name.trim().length < 2 || name.trim().length > 50) {
       return res.status(400).json({ error: "Name must be between 2 and 50 characters" });
     }
-    
+
     // Validate age
     if (age === undefined || age === null || !Number.isInteger(age) || age < 0 || age > 30) {
       return res.status(400).json({ error: "Age must be an integer between 0 and 30" });
     }
-    
+
     // Validate type
     const validTypes = ['dog', 'cat', 'bird', 'fish', 'hamster'];
-    if (!type || typeof type !== 'string' || !validTypes.includes(type.toLowerCase())) {
+    if (typeof type !== 'string' || !validTypes.includes(type.toLowerCase())) {
       return res.status(400).json({ error: "Type must be one of: dog, cat, bird, fish, hamster" });
     }
-    
-    const newPet = await Pet.create({ name, type: type.toLowerCase(), age });
+
+    const newPet = await Pet.create({ name: name.trim(), type: type.toLowerCase(), age });
     res.status(201).json(newPet);
   } catch (err) {
     res.status(400).json({ error: err.message });
