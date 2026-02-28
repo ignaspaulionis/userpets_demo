@@ -24,8 +24,8 @@ router.get('/', async (req, res) => {
 // Add Pet
 router.post('/', async (req, res) => {
   try {
-    const { name, type, age } = req.body;
-    const missingFields = getMissingRequiredFields(req.body, ['name', 'type', 'age']);
+    const { name, type, age = 0 } = req.body;
+    const missingFields = getMissingRequiredFields(req.body, ['name', 'type']);
 
     if (missingFields.length > 0) {
       return res.status(400).json({ error: 'Missing required fields', missingFields });

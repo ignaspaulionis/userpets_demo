@@ -46,6 +46,13 @@ app.use('/pets', petsRouter);
 app.use('/users', userRouter);
 app.use('/tags', tagsRouter);
 
+app.use((err, req, res, next) => {
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    return res.status(400).json({ error: 'Invalid JSON payload' });
+  }
+  return next(err);
+});
+
 // Initialize database and sync models
 sequelize.sync({ force: true })  // Cleans the DB on every load
   .then(() => console.log('Database synced'));
