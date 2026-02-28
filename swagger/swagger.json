@@ -8,9 +8,18 @@
       "/pets": {
         "get": {
           "summary": "Get a list of pets",
+          "parameters": [
+            {
+              "in": "query",
+              "name": "name",
+              "required": false,
+              "type": "string",
+              "description": "Optional case-insensitive partial name filter. Example: `buddy` matches `Buddy` and `mybuddy`."
+            }
+          ],
           "responses": {
             "200": {
-              "description": "A list of pets",
+              "description": "A list of pets (optionally filtered by name)",
               "schema": {
                 "type": "array",
                 "items": {
