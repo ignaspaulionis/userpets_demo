@@ -15,6 +15,9 @@ const Pet = sequelize.define('Pet', {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
+}, {
+  paranoid: true,
+  timestamps: true,
 });
 
 module.exports = { Pet };

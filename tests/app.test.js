@@ -275,16 +275,74 @@ describe('API integration tests', () => {
       expect(res.body.error).toBe('Invalid pet id');
     });
 
-    test('deletes existing pet', async () => {
+    test('soft deletes existing pet', async () => {
       const pet = await Pet.create({ name: 'DeleteMe', type: 'cat', age: 1 });
       const res = await request(app).delete(`/pets/${pet.id}`);
       expect(res.status).toBe(204);
+
+      const deletedInDefaultScope = await Pet.findByPk(pet.id);
+      expect(deletedInDefaultScope).toBeNull();
+
+      const deletedWithParanoidFalse = await Pet.findByPk(pet.id, { paranoid: false });
+      expect(deletedWithParanoidFalse).toBeTruthy();
+      expect(deletedWithParanoidFalse.deletedAt).toBeTruthy();
     });
 
     test('returns 404 when deleting missing pet', async () => {
       const res = await request(app).delete('/pets/999');
       expect(res.status).toBe(404);
       expect(res.body.error).toBe('Pet not found');
+    });
+
+    test('gets pet by id', async () => {
+      const pet = await Pet.create({ name: 'Solo', type: 'cat', age: 2 });
+      const res = await request(app).get(`/pets/${pet.id}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.id).toBe(pet.id);
+      expect(res.body.name).toBe('Solo');
+    });
+
+    test('returns 404 when getting deleted pet by id', async () => {
+      const pet = await Pet.create({ name: 'Gone', type: 'dog', age: 4 });
+      await pet.destroy();
+
+      const res = await request(app).get(`/pets/${pet.id}`);
+      expect(res.status).toBe(404);
+      expect(res.body.error).toBe('Pet not found');
+    });
+
+    test('excludes deleted pets from list', async () => {
+      const activePet = await Pet.create({ name: 'Active', type: 'cat', age: 2 });
+      const deletedPet = await Pet.create({ name: 'Deleted', type: 'dog', age: 3 });
+      await deletedPet.destroy();
+
+      const res = await request(app).get('/pets');
+      expect(res.status).toBe(200);
+      const ids = res.body.map((p) => p.id);
+      expect(ids).toContain(activePet.id);
+      expect(ids).not.toContain(deletedPet.id);
+    });
+
+    test('restores a deleted pet', async () => {
+      const pet = await Pet.create({ name: 'Ghost', type: 'cat', age: 2 });
+      await pet.destroy();
+
+      const res = await request(app).post(`/pets/${pet.id}/restore`);
+      expect(res.status).toBe(200);
+      expect(res.body.id).toBe(pet.id);
+
+      const restored = await Pet.findByPk(pet.id);
+      expect(restored).toBeTruthy();
+      expect(restored.deletedAt).toBeNull();
+    });
+
+    test('returns 400 when restoring non-deleted pet', async () => {
+      const pet = await Pet.create({ name: 'Alive', type: 'cat', age: 2 });
+      const res = await request(app).post(`/pets/${pet.id}/restore`);
+
+      expect(res.status).toBe(400);
+      expect(res.body.error).toBe('Pet is not deleted');
     });
   });
 
