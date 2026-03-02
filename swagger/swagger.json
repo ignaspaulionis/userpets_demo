@@ -50,6 +50,29 @@
         }
       },
       "/pets/{id}": {
+        "get": {
+          "summary": "Get a pet by id",
+          "parameters": [
+            {
+              "in": "path",
+              "name": "id",
+              "required": true,
+              "type": "integer",
+              "description": "Pet ID"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Pet fetched successfully",
+              "schema": {
+                "$ref": "#/definitions/Pet"
+              }
+            },
+            "404": {
+              "description": "Pet not found"
+            }
+          }
+        },
         "put": {
           "summary": "Update a pet",
           "parameters": [
@@ -114,6 +137,34 @@
           "responses": {
             "204": {
               "description": "Pet deleted successfully"
+            }
+          }
+        }
+      },
+      "/pets/{id}/restore": {
+        "post": {
+          "summary": "Restore a soft-deleted pet",
+          "parameters": [
+            {
+              "in": "path",
+              "name": "id",
+              "required": true,
+              "type": "integer",
+              "description": "Pet ID"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Pet restored successfully",
+              "schema": {
+                "$ref": "#/definitions/Pet"
+              }
+            },
+            "400": {
+              "description": "Pet is not deleted or invalid id"
+            },
+            "404": {
+              "description": "Pet not found"
             }
           }
         }

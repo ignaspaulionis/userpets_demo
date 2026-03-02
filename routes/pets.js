@@ -27,6 +27,26 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Get Pet by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!isValidId(id)) {
+      return res.status(400).json({ error: 'Invalid pet id' });
+    }
+
+    const pet = await Pet.findByPk(id, { include: Tag });
+    if (!pet) {
+      return res.status(404).json({ error: 'Pet not found' });
+    }
+
+    res.json(pet);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 // Add Pet
 router.post('/', async (req, res) => {
   try {
@@ -153,14 +173,39 @@ router.delete('/:id', async (req, res) => {
       return res.status(400).json({ error: 'Invalid pet id' });
     }
 
-    const pet = await Pet.findByPk(id, { include: Tag });
+    const pet = await Pet.findByPk(id);
     if (!pet) {
       return res.status(404).json({ error: 'Pet not found' });
     }
 
-    await pet.setTags([]);
     await pet.destroy();
     res.status(204).end();
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Restore Pet
+router.post('/:id/restore', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!isValidId(id)) {
+      return res.status(400).json({ error: 'Invalid pet id' });
+    }
+
+    const pet = await Pet.findByPk(id, { paranoid: false, include: Tag });
+    if (!pet) {
+      return res.status(404).json({ error: 'Pet not found' });
+    }
+
+    if (!pet.deletedAt) {
+      return res.status(400).json({ error: 'Pet is not deleted' });
+    }
+
+    await pet.restore();
+    const restoredPet = await Pet.findByPk(id, { include: Tag });
+    res.json(restoredPet);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
