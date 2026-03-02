@@ -197,12 +197,46 @@ describe('API integration tests', () => {
   });
 
   describe('Pets', () => {
-    test('lists pets', async () => {
+    test('lists pets with pagination metadata using defaults', async () => {
       await Pet.create({ name: 'Luna', type: 'cat', age: 2 });
       const res = await request(app).get('/pets');
       expect(res.status).toBe(200);
-      expect(Array.isArray(res.body)).toBe(true);
-      expect(res.body[0].name).toBe('Luna');
+      expect(Array.isArray(res.body.pets)).toBe(true);
+      expect(res.body.pets[0].name).toBe('Luna');
+      expect(res.body.totalCount).toBe(1);
+      expect(res.body.currentPage).toBe(1);
+      expect(res.body.totalPages).toBe(1);
+    });
+
+    test('supports explicit page and limit query params', async () => {
+      await Pet.bulkCreate([
+        { name: 'Pet1', type: 'cat', age: 1 },
+        { name: 'Pet2', type: 'dog', age: 2 },
+        { name: 'Pet3', type: 'bird', age: 3 },
+      ]);
+
+      const res = await request(app).get('/pets?page=2&limit=1');
+      expect(res.status).toBe(200);
+      expect(Array.isArray(res.body.pets)).toBe(true);
+      expect(res.body.pets).toHaveLength(1);
+      expect(res.body.totalCount).toBe(3);
+      expect(res.body.currentPage).toBe(2);
+      expect(res.body.totalPages).toBe(3);
+    });
+
+    test('returns 400 for invalid page/limit values', async () => {
+      const res = await request(app).get('/pets?page=0&limit=10');
+      expect(res.status).toBe(400);
+      expect(res.body.error).toBe('page and limit must be positive integers');
+    });
+
+    test('returns empty array and zero metadata when no pets exist', async () => {
+      const res = await request(app).get('/pets');
+      expect(res.status).toBe(200);
+      expect(res.body.pets).toEqual([]);
+      expect(res.body.totalCount).toBe(0);
+      expect(res.body.currentPage).toBe(1);
+      expect(res.body.totalPages).toBe(0);
     });
 
     test('creates pet with valid payload', async () => {
@@ -368,14 +402,14 @@ describe('API integration tests', () => {
 
       const petAfterAssign = await request(app).get('/pets');
       expect(petAfterAssign.status).toBe(200);
-      expect(petAfterAssign.body[0].Tags.some((t) => t.id === tag.id)).toBe(true);
+      expect(petAfterAssign.body.pets[0].Tags.some((t) => t.id === tag.id)).toBe(true);
 
       const removeRes = await request(app).delete(`/pets/${pet.id}/tags/${tag.id}`);
       expect(removeRes.status).toBe(204);
 
       const petAfterRemove = await request(app).get('/pets');
       expect(petAfterRemove.status).toBe(200);
-      expect(petAfterRemove.body[0].Tags.length).toBe(0);
+      expect(petAfterRemove.body.pets[0].Tags.length).toBe(0);
     });
 
     test('returns 400 for invalid pet/tag ids', async () => {
