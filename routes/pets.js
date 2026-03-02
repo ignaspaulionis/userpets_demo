@@ -12,12 +12,30 @@ const isNonEmptyString = (value) => typeof value === 'string' && value.trim().le
 router.get('/', async (req, res) => {
   try {
     const options = { include: Tag };
+    const conditions = [];
     const type = typeof req.query.type === 'string' ? req.query.type.trim() : '';
+    const name = typeof req.query.name === 'string' ? req.query.name.trim() : '';
 
     if (type) {
-      options.where = where(fn('lower', col('Pet.type')), {
-        [Op.like]: type.toLowerCase(),
-      });
+      conditions.push(
+        where(fn('lower', col('Pet.type')), {
+          [Op.like]: type.toLowerCase(),
+        }),
+      );
+    }
+
+    if (name) {
+      conditions.push(
+        where(fn('lower', col('Pet.name')), {
+          [Op.like]: `%${name.toLowerCase()}%`,
+        }),
+      );
+    }
+
+    if (conditions.length === 1) {
+      options.where = conditions[0];
+    } else if (conditions.length > 1) {
+      options.where = { [Op.and]: conditions };
     }
 
     const pets = await Pet.findAll(options);
