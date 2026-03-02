@@ -194,6 +194,29 @@ describe('API integration tests', () => {
       expect(res.body[0]).toHaveProperty('email');
       expect(res.body[0]).toHaveProperty('issuperadmin');
     });
+
+    test('lists pets for a specific user', async () => {
+      const user = await User.create({
+        email: 'owner@example.com',
+        password: 'password123',
+        fullname: 'Pet Owner',
+      });
+      const otherUser = await User.create({
+        email: 'other@example.com',
+        password: 'password123',
+        fullname: 'Other User',
+      });
+
+      await Pet.create({ name: 'Owned Pet', type: 'dog', age: 3, userId: user.id });
+      await Pet.create({ name: 'Other Pet', type: 'cat', age: 4, userId: otherUser.id });
+
+      const res = await request(app).get(`/users/${user.id}/pets`);
+      expect(res.status).toBe(200);
+      expect(Array.isArray(res.body)).toBe(true);
+      expect(res.body).toHaveLength(1);
+      expect(res.body[0].name).toBe('Owned Pet');
+      expect(res.body[0].userId).toBe(user.id);
+    });
   });
 
   describe('Pets', () => {
@@ -216,6 +239,53 @@ describe('API integration tests', () => {
       expect(res.body.name).toBe('Buddy');
       expect(res.body.type).toBe('dog');
       expect(res.body.age).toBe(4);
+      expect(res.body.userId).toBeNull();
+    });
+
+    test('creates pet with owner userId when provided', async () => {
+      const user = await User.create({
+        email: 'petowner@example.com',
+        password: 'password123',
+        fullname: 'Owner User',
+      });
+
+      const res = await request(app).post('/pets').send({
+        name: 'Rex',
+        type: 'dog',
+        age: 5,
+        userId: user.id,
+      });
+
+      expect(res.status).toBe(201);
+      expect(res.body.userId).toBe(user.id);
+    });
+
+    test('rejects pet create when userId does not exist', async () => {
+      const res = await request(app).post('/pets').send({
+        name: 'Ghost',
+        type: 'cat',
+        age: 2,
+        userId: 999,
+      });
+
+      expect(res.status).toBe(404);
+      expect(res.body.error).toBe('User not found');
+    });
+
+    test('includes owner info in pet list', async () => {
+      const user = await User.create({
+        email: 'ownerlist@example.com',
+        password: 'password123',
+        fullname: 'List Owner',
+      });
+      await Pet.create({ name: 'Milo', type: 'dog', age: 2, userId: user.id });
+
+      const res = await request(app).get('/pets');
+
+      expect(res.status).toBe(200);
+      expect(res.body[0]).toHaveProperty('User');
+      expect(res.body[0].User.id).toBe(user.id);
+      expect(res.body[0].User.fullname).toBe('List Owner');
     });
 
     test('rejects pet with invalid age', async () => {
@@ -285,6 +355,21 @@ describe('API integration tests', () => {
       const res = await request(app).delete('/pets/999');
       expect(res.status).toBe(404);
       expect(res.body.error).toBe('Pet not found');
+    });
+
+    test('keeps pets and nulls owner when user is deleted', async () => {
+      const user = await User.create({
+        email: 'deletable@example.com',
+        password: 'password123',
+        fullname: 'Delete Me',
+      });
+      const pet = await Pet.create({ name: 'StillHere', type: 'cat', age: 2, userId: user.id });
+
+      await user.destroy();
+      const reloadedPet = await Pet.findByPk(pet.id);
+
+      expect(reloadedPet).toBeTruthy();
+      expect(reloadedPet.userId).toBeNull();
     });
   });
 
