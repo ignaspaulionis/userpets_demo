@@ -20,6 +20,21 @@ describe('API integration tests', () => {
     await sequelize.close();
   });
 
+  describe('Health', () => {
+    test('returns health payload without authentication', async () => {
+      const start = process.hrtime.bigint();
+      const res = await request(app).get('/health');
+      const elapsedMs = Number(process.hrtime.bigint() - start) / 1e6;
+
+      expect(res.status).toBe(200);
+      expect(res.body.status).toBe('ok');
+      expect(new Date(res.body.timestamp).toString()).not.toBe('Invalid Date');
+      expect(typeof res.body.uptime).toBe('number');
+      expect(Number.isFinite(res.body.uptime)).toBe(true);
+      expect(elapsedMs).toBeLessThan(100);
+    });
+  });
+
   describe('Users', () => {
     test('registers user', async () => {
       const res = await request(app).post('/users/register').send({

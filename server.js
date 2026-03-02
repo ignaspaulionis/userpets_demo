@@ -37,6 +37,14 @@ function createApp() {
   });
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
+  app.get('/health', (_req, res) => {
+    res.status(200).json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+    });
+  });
+
   app.use('/pets', petsRouter);
   app.use('/users', userRouter);
   app.use('/tags', tagsRouter);
