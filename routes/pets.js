@@ -81,9 +81,9 @@ router.patch('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Pet not found' });
     }
     const { name, type, age } = req.body;
-    pet.name = name || pet.name;
-    pet.type = type || pet.type;
-    pet.age = age || pet.age;
+    pet.name = name !== undefined ? name : pet.name;
+    pet.type = type !== undefined ? type : pet.type;
+    pet.age = age !== undefined ? age : pet.age;
     await pet.save();
     res.json(pet);
   } catch (err) {
