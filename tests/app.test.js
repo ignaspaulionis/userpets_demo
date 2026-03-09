@@ -163,6 +163,68 @@ describe('API integration tests', () => {
       expect(res.body.user.issuperadmin).toBe(true);
     });
 
+    test('forbids patching another user without superadmin', async () => {
+      const userA = await User.create({
+        email: 'patch-a@example.com',
+        password: 'password123',
+        fullname: 'Patch A',
+      });
+      const userB = await User.create({
+        email: 'patch-b@example.com',
+        password: 'password123',
+        fullname: 'Patch B',
+      });
+      const token = jwt.encode({ userId: userA.id }, secretKey);
+
+      const res = await request(app)
+        .patch(`/users/${userB.id}`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ fullname: 'Blocked Patch' });
+
+      expect(res.status).toBe(403);
+      expect(res.body).toEqual({ error: 'Access denied' });
+    });
+
+    test('allows superadmin to patch another user', async () => {
+      const superadmin = await User.create({
+        email: 'patch-superadmin@example.com',
+        password: 'password123',
+        fullname: 'Patch Superadmin',
+        issuperadmin: true,
+      });
+      const targetUser = await User.create({
+        email: 'patch-target@example.com',
+        password: 'password123',
+        fullname: 'Patch Target',
+      });
+      const token = jwt.encode({ userId: superadmin.id }, secretKey);
+
+      const res = await request(app)
+        .patch(`/users/${targetUser.id}`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ fullname: 'Patched By Superadmin' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.user.fullname).toBe('Patched By Superadmin');
+    });
+
+    test('allows owner to patch self', async () => {
+      const user = await User.create({
+        email: 'patch-self@example.com',
+        password: 'password123',
+        fullname: 'Patch Self',
+      });
+      const token = jwt.encode({ userId: user.id }, secretKey);
+
+      const res = await request(app)
+        .patch(`/users/${user.id}`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ fullname: 'Patched Self' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.user.fullname).toBe('Patched Self');
+    });
+
     test('returns 404 when updating missing user in authorized context', async () => {
       const superadmin = await User.create({
         email: 'superadmin@example.com',
@@ -237,7 +299,7 @@ describe('API integration tests', () => {
       });
 
       expect(res.status).toBe(400);
-      expect(res.body.error).toContain('Type must be one of');
+      expect(res.body).toEqual({ error: 'Type must be one of: dog, cat, bird, fish, hamster' });
     });
 
     test('updates pet with PUT', async () => {
@@ -261,6 +323,27 @@ describe('API integration tests', () => {
       expect(res.status).toBe(200);
       expect(res.body.name).toBe('Patched');
       expect(res.body.type).toBe('cat');
+    });
+
+    test('patches pet age to 0 and persists it', async () => {
+      const createRes = await request(app).post('/pets').send({
+        name: 'ZeroAge',
+        type: 'dog',
+        age: 5,
+      });
+      expect(createRes.status).toBe(201);
+      const petId = createRes.body.id;
+      expect(petId).toBeTruthy();
+
+      const patchRes = await request(app).patch(`/pets/${petId}`).send({ age: 0 });
+      expect(patchRes.status).toBe(200);
+      expect(patchRes.body.age).toBe(0);
+
+      const listRes = await request(app).get('/pets');
+      expect(listRes.status).toBe(200);
+      const patchedPet = listRes.body.find((p) => p.id === petId);
+      expect(patchedPet).toBeTruthy();
+      expect(patchedPet.age).toBe(0);
     });
 
     test('returns 404 when updating missing pet', async () => {

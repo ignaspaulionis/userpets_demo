@@ -65,6 +65,10 @@ router.patch('/:id', authMiddleware, async (req, res) => {
   try {
     const { issuperadmin, email, fullname } = req.body;
 
+    if (req.user.id !== parseInt(req.params.id) && !req.user.issuperadmin) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
     const user = await User.findByPk(req.params.id);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
@@ -74,7 +78,7 @@ router.patch('/:id', authMiddleware, async (req, res) => {
     if (typeof issuperadmin !== 'undefined') {
       user.issuperadmin = issuperadmin;
     }
-    
+
     await user.save();
     res.json({ message: 'User updated successfully', user });
   } catch (err) {
